@@ -30,7 +30,8 @@ class UserProfile (m.Model):
     group_invites = m.ManyToManyField(Group, related_name='invitees')
 
     class Admin:
-        list_display = ['user', 'is_private', 'url']
+        list_display = ['user', 'is_private', 'url',
+            'default_to_private_entry']
         list_filter = ['is_private', 'default_to_private_entry']
         ordering = ['user']
         
