@@ -1,0 +1,21 @@
+X Use built-in auth_user and auth_groups
+
+  Import entries
+
+  Complete import script
+
+  Port template base
+
+  Replicate index page
+
+  Implement solr and basic indexing
+
+  Implement rss
+
+  Implement other alt views
+
+  Implement logins
+
+  Implement openid
+
+  Extend user profiles with openid info
