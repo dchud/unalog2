@@ -1,12 +1,18 @@
 X Use built-in auth_user and auth_groups
 
-  Import entries
+X Bug (import): Why are no users "private" or "default_to_private" ?
+
+X Import entries
+ 
+  Fix dates on entries somehow
 
   Complete import script
 
   Port template base
 
   Replicate index page
+
+  Deal with entry content zip/unzip
 
   Implement solr and basic indexing
 

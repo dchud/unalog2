@@ -36,10 +36,10 @@ def add_user (old={}):
         # Stringy
         profile = m.UserProfile(user=user)
         for att in ['url',  'token', 'tz']:
-            setattr(user, att, old.get(att, '') or '')
+            setattr(profile, att, old.get(att, '') or '')
         # Booleanish
         for att in ['is_private', 'default_to_private_entry']:
-            setattr(user, att, old.get(att, False) or False)
+            setattr(profile, att, old.get(att, False) or False)
     user.save()
     profile.save()
     return user
@@ -101,7 +101,21 @@ def main (options, args):
                 is_exact=f['is_exact'], 
                 value=f['value'])
             new_filter.save()
+        for e_dict in old_user['entries']:
+            e = m.Entry(user=new_user)
+            for attr in ['title', 'url', 'comment', 'content']:
+                setattr(e, attr, e_dict.get(attr, '') or '')
+            e.is_private = e_dict.get('is_private', False) or False
+            e.save()
+            # groups
+            for g in e_dict.get('groups', []):
+                e.groups.add(new_groups[g])
+            # tags
+            for t in e_dict.get('tags', []):
+                tag, created = m.Tag.objects.get_or_create(name=t)
+                e.tags.add(tag)
         new_users[new_user.username] = new_user
+        
 
 
 
