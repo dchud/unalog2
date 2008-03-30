@@ -19,7 +19,14 @@ class GroupProfile (m.Model):
         
     class Meta:
         ordering = ['group']
-        
+
+# Duckpunch Group to offer up profile like User's get_profile just
+# because it looks weird to use User.get_profile and Group.profile
+def get_profile (group):
+    return group.profile
+    
+Group.get_profile = get_profile
+
 
 class UserProfile (m.Model):
     user = m.ForeignKey(User, unique=True)
@@ -33,7 +40,7 @@ class UserProfile (m.Model):
 
     class Admin:
         list_display = ['user', 'url', 'is_private', 
-            'default_to_private_entry']
+            'default_to_private_entry', 'date_modified']
         list_filter = ['is_private', 'default_to_private_entry']
         ordering = ['user']
         search_fields = ['url']
@@ -45,6 +52,8 @@ class Filter (m.Model):
     value = m.CharField(max_length=50)
     is_exact = m.BooleanField(default=False)
     is_active = m.BooleanField(default=True)
+    date_created = m.DateTimeField(auto_now_add=True, db_index=True)
+    date_modified = m.DateTimeField(auto_now=True)
     
     class Admin:
         list_display = ['id', 'user', 'attr_name', 'value', 
@@ -71,7 +80,7 @@ class Entry (m.Model):
         
     # Default to 'web link' just to save a step
     etype = m.CharField(max_length=1, choices=ENTRY_TYPE_CHOICES,
-        default=ENTRY_TYPE_CHOICES[0][0])
+        default=ENTRY_TYPE_CHOICES[0][0], db_index=True)
     user = m.ForeignKey(User, related_name='entries')
     title = m.CharField(max_length=255)
     url = m.URLField(blank=True, db_index=True)
@@ -80,13 +89,16 @@ class Entry (m.Model):
     content = m.TextField(blank=True)
     tags = m.ManyToManyField(Tag, related_name='entries')
     groups = m.ManyToManyField(Group, related_name='entries')
-    date_created = m.DateTimeField(auto_now_add=True)
+    date_created = m.DateTimeField(auto_now_add=True, db_index=True)
     date_modified = m.DateTimeField(auto_now=True)
     
     def __unicode__ (self):
         return '<Entry: %s (%s)>' % (self.id, self.user.username)
         
     class Admin:
-        list_display = ['id', 'user', 'etype', 'url', 'date_created']
-        list_filter = ['date_created']
-        search_fields = ['title', 'url']
+        list_display = ['id', 'user', 'etype', 'url', 'is_private', 'date_created']
+        list_filter = ['date_created', 'etype', 'is_private']
+        search_fields = ['id', 'title', 'url']
+
+    class Meta:
+        verbose_name_plural = 'entries'

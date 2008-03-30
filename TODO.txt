@@ -4,7 +4,11 @@ X Bug (import): Why are no users "private" or "default_to_private" ?
 
 X Import entries
  
-  Fix dates on entries somehow
+X Make the importer more memory efficient (done in theory)
+  
+X Fix dates on entries somehow
+
+X Set date_created on users and groups based on first entry
 
   Complete import script
 
@@ -12,11 +16,13 @@ X Import entries
 
   Replicate index page
 
-  Deal with entry content zip/unzip
+  Rethink EntryType model
+  
+  Deal with entry content zip/unzip (save hooks? just a function?)
 
   Implement solr and basic indexing
 
-  Implement rss
+  Implement feeds
 
   Implement other alt views
 

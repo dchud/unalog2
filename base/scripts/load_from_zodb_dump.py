@@ -2,10 +2,13 @@
 
 from optparse import OptionParser
 import os
+import traceback
 
+import iso8601
 import simplejson as json
 
 from django.contrib.auth.models import User, Group
+from django.db import connection
 
 from unalog2.base import models as m
 
@@ -46,7 +49,10 @@ def add_user (old={}):
 
 
 def add_group (old={}):
-    new_group = Group.objects.create(name=old['id'])
+    new_group, created = Group.objects.get_or_create(name=old['id'])
+    if not created:
+        print 'WARNING, DUPLICATE GROUP:', new_group.name
+        return new_group
     print 'Adding group %s' % new_group.name
     new_group.save()
     profile = m.GroupProfile(group=new_group,
@@ -57,41 +63,54 @@ def add_group (old={}):
     return new_group
 
 
+def get_iso_date (d):
+    date = iso8601.parse_date(d)
+    date_str = (date + date.utcoffset()).strftime('%Y-%m-%d %H:%M:%S')
+    return date_str
+
+
+def fix_group_dates (group):
+    try:
+        first_e = group.entries.order_by('date_created')[:1][0]
+        profile = group.get_profile()
+        profile.date_created = first_e.date_created
+        profile.save()
+        print 'Updated group "%s".date_created:' % group, group.get_profile().date_created
+    except:
+        #print traceback.print_exc()
+        print 'No entries found for group:', group
+
+ 
 def add_entry (old={}):
     pass
 
 
 def main (options, args):
+    cursor = connection.cursor()
+    
     print 'Loading data from %s' % options.directory
     print 'Loading groups'
     old_groups = json.load(open('%s/group.json' % options.directory))
-    new_groups = {}
     print 'Found %s groups' % len(old_groups)
     for old_group_name, old_group in old_groups.items():
         new_group = add_group(old_group)
         print 'Saved new group %s from old group %s' % (new_group.id, new_group.name)
-        new_groups[new_group.name] = new_group
     
-    old_users = []
-    new_users = {}
-    for user_json in os.listdir('%s/users' % options.directory):
+    for user_json in os.listdir('%s/users' % options.directory)[:30]:
         if not user_json.endswith('.json'):
             continue
         print 'Loading %s' % user_json[:-5]
-        old_users.append(json.load(
-            open('%s/users/%s' % (options.directory, user_json))))
-    
-    for old_user in old_users:
+        old_user = json.load(open('%s/users/%s' % (options.directory, user_json)))
         new_user = add_user(old_user)
         print 'Saved new user %s from old user %s' % \
             (new_user.id, new_user.username)
         for group in old_user['groups']:
             print 'Adding to group %s' % group
-            new_user.groups.add(new_groups[group])
+            new_user.groups.add(m.Group.objects.get(name=group))
             new_user.save()
         for invite in old_user['group_invites']:
             print 'Copying invite to group %s' % invite
-            new_user.group_invites.add(new_groups[invite])
+            new_user.group_invites.add(m.Group.objects.get(name=invite))
             new_user.save()
         for f in old_user['filters']:
             print 'Adding filter on "%s" (%s)' % (f['value'], f['attr'])
@@ -109,13 +128,31 @@ def main (options, args):
             e.save()
             # groups
             for g in e_dict.get('groups', []):
-                e.groups.add(new_groups[g])
+                e.groups.add(m.Group.objects.get(name=g))
             # tags
             for t in e_dict.get('tags', []):
                 tag, created = m.Tag.objects.get_or_create(name=t)
                 e.tags.add(tag)
-        new_users[new_user.username] = new_user
+            date_str = get_iso_date(e_dict['date'])
+            e.date_created = date_str
+            e.save()
+            # Note: date_modified will always self-update after API updates
+            # so drop down to db
+            #clean_date_str = e.date_created.isoformat().replace('T', ' ')
+            cursor.execute("""
+                UPDATE base_entry 
+                SET date_modified='%s' 
+                WHERE id=%s
+                """ % (date_str, e.id))
+                
+        # A lovely little cheat
+        new_user.date_joined = new_user.entries.iterator().next().date_created
+        new_user.save()
+        new_user_profile = new_user.get_profile()
+        new_user_profile.save()
         
+    for group in m.Group.objects.all():
+        fix_group_dates(group)
 
 
 
@@ -131,7 +168,7 @@ if __name__ == '__main__':
     if options.reset:
         print 'Resetting tables'
         print 'Deleting all Users'
-        for u in User.objects.exclude(username='dev'):
+        for u in User.objects.exclude(id=1):
             u.delete()
         print 'Deleting all Groups'
         for g in Group.objects.all():
