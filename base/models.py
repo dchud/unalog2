@@ -83,8 +83,8 @@ class Entry (m.Model):
     etype = m.CharField(max_length=1, choices=ENTRY_TYPE_CHOICES,
         default=ENTRY_TYPE_CHOICES[0][0], db_index=True)
     user = m.ForeignKey(User, related_name='entries')
-    title = m.CharField(max_length=255)
-    url = m.URLField(blank=True, db_index=True)
+    title = m.TextField()
+    url = m.URLField(max_length=500, blank=True, db_index=True)
     comment = m.TextField(blank=True)
     is_private = m.BooleanField(default=False, db_index=True)
     content = m.TextField(blank=True)

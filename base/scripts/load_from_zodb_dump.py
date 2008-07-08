@@ -18,9 +18,9 @@ def add_user (old={}):
     user = User.objects.create_user(username=old['id'],
         email=old.get('email', ''),
         password=old['new_password'])
-    user.is_admin = old.get('is_admin', False) or False
-    user.is_staff = old.get('is_admin', False) or False
-    user.is_active = old.get('is_active', False) or False
+    user.is_admin = bool(old.get('is_admin', False)) or False
+    user.is_staff = bool(old.get('is_admin', False)) or False
+    user.is_active = bool(old.get('is_active', False)) or False
     old_name = old.get('name', '') or ''
     if old_name:
         if ' ' in old_name:
@@ -42,7 +42,7 @@ def add_user (old={}):
             setattr(profile, att, old.get(att, '') or '')
         # Booleanish
         for att in ['is_private', 'default_to_private_entry']:
-            setattr(profile, att, old.get(att, False) or False)
+            setattr(profile, att, bool(old.get(att, False)) or False)
     user.save()
     profile.save()
     return user
@@ -57,7 +57,7 @@ def add_group (old={}):
     new_group.save()
     profile = m.GroupProfile(group=new_group,
         desc=old['desc'],
-        is_private=old['is_private'],
+        is_private=bool(old['is_private']),
         stoken=old.get('stoken', '') or '')
     profile.save()
     return new_group
@@ -122,9 +122,10 @@ def main (options, args):
             new_filter.save()
         for e_dict in old_user['entries']:
             e = m.Entry(user=new_user)
-            for attr in ['title', 'url', 'comment', 'content']:
+            for attr in ['title', 'comment', 'content']:
                 setattr(e, attr, e_dict.get(attr, '') or '')
-            e.is_private = e_dict.get('is_private', False) or False
+            e.url = e_dict.get('url', '')[:500]
+            e.is_private = bool(e_dict.get('is_private', False)) or False
             e.save()
             # groups
             for g in e_dict.get('groups', []):
