@@ -1,3 +1,4 @@
+settings.py
 *.sqlite3
 *.py[co]
 *~
