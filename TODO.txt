@@ -10,7 +10,7 @@ X Fix dates on entries somehow
 
 X Set date_created on users and groups based on first entry
 
-  Complete import script
+X Complete import script
 
   Port template base
 

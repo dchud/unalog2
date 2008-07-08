@@ -96,7 +96,7 @@ def main (options, args):
         new_group = add_group(old_group)
         print 'Saved new group %s from old group %s' % (new_group.id, new_group.name)
     
-    for user_json in os.listdir('%s/users' % options.directory)[:30]:
+    for user_json in os.listdir('%s/users' % options.directory):
         if not user_json.endswith('.json'):
             continue
         print 'Loading %s' % user_json[:-5]

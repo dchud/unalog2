@@ -71,6 +71,7 @@ class Tag (m.Model):
         
     class Admin:
         list_display = ['id', 'name']
+        search_fields = ['name']
 
 
 class Entry (m.Model):
