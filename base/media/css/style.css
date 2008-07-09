@@ -1,0 +1,428 @@
+body {
+	font-family: Georgia, serif;
+	background: #eee;
+}
+
+h1 {
+	font-size: xx-large;
+}
+
+h2 {
+	font-size: large;
+}
+
+h3 {
+	font-size: medium;
+}
+
+a:hover {
+        text-decoration: underline;
+}
+
+#contentwrapper {
+	margin-left: auto;
+	margin-right: auto;
+	width: 90%;
+	border: 1px solid #aaa;
+	background: #fafafa;
+}
+
+#header {
+	border-bottom: 1px solid #aaa;
+	background: #555;
+	color: #fff;
+	padding: 10px;
+        font-size: small;
+}
+
+#header h1 {
+	margin: 0;
+	padding: 0;
+}
+
+#header a {
+        color: #fff;
+        font-size: small;
+}
+
+.bold {
+        font-weight: bold;
+}
+
+#menu {
+	border-bottom: 1px solid #aaa;
+	background: #777;
+}
+
+#menu ul {
+	margin: 0;
+	padding: 0;
+	list-style-type: none;
+	padding: 5px 0;
+}
+
+#menu li {
+	display: inline;
+}
+
+#menu ul li a {
+	text-decoration: none;
+	color: #eee;
+	background-color: #777;
+	padding: 5px;
+}
+
+#menu ul li a:hover {
+	color: #000;
+	background-color: #eee;
+}
+
+#menu ul li#active a {
+	color: #000;
+	background-color: #ddd;
+}
+
+form.search {
+        margin: 0;
+        padding: 3px 0;
+        color: #fff;
+        font-size: small;
+        padding-right: 1em;
+}
+
+form.search a {
+        color: #fff;
+}
+
+#quixote br#quixoteform {
+    padding: 5px;
+}
+
+.relevance-box {
+    border: 1px solid #666;
+    background-color: #eee;
+    padding: 0px;
+    margin-top: .55em;
+    margin-left: 1em;
+    float: left;
+    width: 50px;
+}
+
+.relevance {
+    background-color:  #888;
+    height:  5px;
+}
+
+#content {
+	padding: 10px;
+}
+
+#content dd {
+	margin-bottom: 5px;
+}
+
+dd blockquote {
+	margin-top: 1px;
+	margin-bottom: 1px;
+}
+
+dd blockquote p {
+	margin-top: 0;
+}
+
+div.widget {
+	clear: both;
+	padding-top: 8px;
+}
+
+div.widget div.title {
+	float: left;
+	width: 17%;
+	font-weight: bold;
+	text-align: right;
+}
+
+div.widget div.content {
+	float: right;
+	width: 80%;
+	text-align: left;
+} 
+
+div.widget div.error {
+	color: red;
+}
+
+span.required {
+	color: red;
+}
+
+input, textarea, select {
+	background: #f2f2f2;
+	padding: 2px;
+	border: 1px solid #777;
+	letter-spacing: -0.03em;
+}
+
+input[type=submit], input[type=button] { 
+	background: #eee;
+	color: #222;
+	border: 1px outset #ccc;
+	padding .1em .5em;
+}
+
+input[type=submit]:hover, input[type=button]:hover { 
+	background: #ccb;
+}
+
+.sidebox {
+	border: 1px solid #777;
+	width: 200px;
+	float: right;
+	margin: 10px;
+	clear: right;
+	background: #f0f0f0;
+}
+
+.sidebox h2 {
+	margin: 0;
+	padding: 5px;
+	color: #fff;
+	background: #777;
+	font-size: medium;
+}
+
+.sidebox h3 {
+	margin: 0;
+	padding: 5px;
+	font-size: medium;
+	font-weight: bold;
+}
+
+.sidebox p {
+	margin: 5px;
+}
+
+.sidebox form {
+	margin: 0;
+}
+
+.sidebox ul {
+	list-style: circle outside;
+	margin: 5px 0px;
+	padding-left: 1.5em;
+	padding-bottom: 1em;
+}
+
+.sidebox em {
+	font-style: normal;
+	font-weight: bold;
+}
+
+.gentable {
+	width: 90%;
+}
+
+.gentable td {
+	text-align: left;
+	background: #fff;
+	border: 1px solid #e5e5e5;
+	padding: 5px;
+}
+
+.gentable th {
+	padding: 5px;
+	color: #333;
+	background: #eee;
+	border: 1px solid #ccc;
+	font-size: medium;
+}
+
+#groups, #people {
+    width: 100%;
+}
+
+#groups .members, #groups .actions, #admin .user, #admin .age {
+	text-align: center;
+}
+
+#groups .description {
+	font-size: small;
+}
+
+#tags {
+    width: 100%;
+}
+
+#tags .col1 {
+    text-align: right;
+    width: 45%;
+}
+
+#tags .col2 {
+    text-align: left;
+    width: 45%;
+}
+
+.tagcount {
+    font-size: 60%;
+}
+
+textarea {
+	overflow: auto;
+}
+
+ul#pageturn {
+	margin: 0;
+	padding: 0;
+	list-style-type: none;
+	padding: 5px 0;
+}
+
+#pageturn li {
+	display: inline;
+}
+
+ul#pageturn li a {
+	text-decoration: none;
+	color: #eee;
+	background-color: #777;
+	padding: 5px;
+}
+
+ul#pageturn li a:hover {
+	color: #fff;
+	background-color: #aaa;
+}
+
+.button {
+	background: #ff6600;
+	color: white !important;
+	border-left:   1px solid #cc9966;
+	border-top:    1px solid #ccaa99;
+	border-right:  1px solid #993300;
+	border-bottom: 1px solid #331100;
+	padding: 0px 0.4em 0.2em 0.4em;
+	font-family: helvetica, arial, sans-serif;
+	font-weight: bold;
+	font-size: small;
+	text-decoration: none;
+	margin-top: 1em;
+}
+
+.button:hover {
+	 background: #ff9900;
+}
+
+#footer {
+	font-size: small;
+	text-align: right;
+	border-top: 1px solid #aaa;
+	background: #555;
+	color: #fff;
+	padding: 5px;
+	clear: both;
+}
+
+#footer p {
+	margin: 0;
+	padding: 0;
+}
+
+/* Timeline */
+/* these properties shamelessly borrowed nearly verbatim from trac project */
+#timeline-hdr {
+    display: inline;
+}
+
+#timeline-prefs {
+    background: #f7f7f0;
+    border: 1px outset #998;
+    float: right;
+    font-size: 9px;
+    padding: 1em;
+    margin-left: 1em;
+    margin-bottom: 1em;
+    white-space: nowrap;
+}
+
+#timeline-prefs input {
+    font-size: 9px;
+}
+
+#timeline-prefs-checks { }
+
+#timeline-prefs-btns {
+    text-align: right;
+    margin-top: 1em;
+}
+
+.timeline-daysep {
+    font-size: 100%;
+    border-bottom: 1px solid #d7d7d7;
+    background: #f5f5f5;
+    color: #333333;
+    clear: both;
+}
+
+.tl-day {
+    line-height: 130%;
+    margin-left: 1em;
+    margin-bottom: .5em;
+}
+
+.tl-day-relevance {
+    line-height: 130%;
+    margin-left: 82px;
+    margin-bottom: .5em;
+}
+
+a.tl-item {
+    display: block;
+    color: #000;
+    padding: 1px 0;
+    margin: 1px;
+    border: none;
+}
+
+a.tl-item:hover {
+    background-color: #eed;
+    color: #000;
+}
+
+.tl-item-time {
+    color: #555;
+    font-size: small;
+}
+
+.tl-item-title {
+    color: #777;
+    font-size: small;
+}
+
+.tl-item-links {
+    color: #777;
+    font-size: small;
+    margin-left: 1.3em;
+}
+
+.tl-item-link {
+    border-bottom: 1px dotted #bbb;
+    color: #b00;
+    font-weight: normal;
+    text-decoration: none;
+}
+
+.description {
+    display: block;
+    margin-left: 1.3em;
+    font-size: 80%;
+}
+
+.tl-item-icon {
+    vertical-align: text-top;
+    margin: 0;
+}
+
+.Z3988 {
+    display: none;
+}

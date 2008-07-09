@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+
+
+{% block content %}
+
+	<div id='entryset'>
+    
+	    <h2 class='timeline-daysep'>Sunday, 2008-03-30</h2>
+
+{% for entry in entries %}
+
+	{% include "entry.html" %}
+
+{% endfor %}       
+
+    </div>
+
+	<ul id='pageturn'>
+
+	    <li><a href='?o=50&amp;w=50&amp;d=p'>Previous</a></li>
+
+	    <li><a href='?o=0&amp;w=50&amp;d=p'>Next</a></li>
+
+	</ul>
+
+    <p>
+    Filtered 1 entry.  [<a href='http://unalog.com/my/filter'>Edit filters</a>]
+    </p>
+
+    <p>
+        <a class='button' href='pda'>PDA</a>
+        &nbsp;
+        <a class='button' href='rss'>RSS</a>
+        &nbsp;
+        <a class='button' href='xbel'>XBEL</a>
+        &nbsp;
+        <a class='button' href='xobis'>XOBIS</a>
+        &nbsp;
+        <a class='button' href='mods'>MODS</a>
+    </p>
+
+{% endblock %}
+
+

@@ -64,6 +64,10 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.doc.XViewMiddleware',
 )
 
+TEMPLATE_CONTEXT_PROCESSORS = (
+	'django.core.context_processors.auth',
+)
+
 ROOT_URLCONF = 'unalog2.urls'
 
 TEMPLATE_DIRS = (

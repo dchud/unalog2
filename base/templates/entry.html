@@ -1,0 +1,37 @@
+<div class='xfolkentry'>
+    <div class='tl-day'>
+    <span class='tl-item-time'>{{ entry.date_created }}</span>
+    <span class='tl-item-title'>
+        by <a href='http://unalog.com/person/{{ entry.username }}'>
+	
+	<span class='user{% ifequal entry.user user %} bold{% endifequal %}'>{{ entry.user.username }}</span>
+	</a> -
+        <a class='taggedlink' href='{{ entry.url }}'>
+	{% ifequal entry.user user %}<span class='bold'>{% endifequal %}
+	{{ entry.title }}
+	{% ifequal entry.user user %}</span>{% endifequal %}
+	</a> <br />
+    </span>
+
+	{% ifequal entry.user user %}
+        <div class='tl-item-links'>
+            [<a href='http://unalog.com/my/entry/{{ entry.id }}/edit'><span class='bold'>edit</span></a>]
+            [<a href='http://unalog.com/my/entry/{{ entry.id }}/delete'><span class='bold'>delete</span></a>]
+        </div>
+	{% endifequal %}
+
+	{% with entry.tags.count as tag_count %}
+		{% ifnotequal tag_count 0 %}
+			{% with entry.tags.all as tags %}
+        <div class='tl-item-links'>
+            with tag{{ tag_count|pluralize }}
+    			{% for tag in tags %}
+            <a class='tag' rel='tag' href='/tag/{{ tag.name }}'>{{ tag.name }}</a>
+        		{% endfor %}
+        </div>
+			{% endwith %}
+		{% endifnotequal %}
+	{% endwith %}
+
+    </div>
+</div>

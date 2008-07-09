@@ -1,0 +1,39 @@
+body {
+	background: #fff;
+}
+
+#contentwrapper {
+	width: 100%;
+	background: #fff;
+	border: 0;
+}
+
+#header {
+	color: #000;
+	background: #fff;
+	border: 0;
+	border-bottom: 1px solid #000;
+}
+
+#menu {
+	display: none;
+}
+
+.sidebox {
+	display: none;
+}
+
+#pageturn {
+	display: none;
+}
+
+.button {
+	display: none;
+}
+
+#footer {
+	border: 0;
+	background: #fff;
+	color: #000;
+	border-top: 1px solid #000;
+}
