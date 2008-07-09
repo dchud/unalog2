@@ -12,22 +12,32 @@ X Set date_created on users and groups based on first entry
 
 X Complete import script
 
-  Port template base
+X Port template base
 
-  Replicate index page
-
-  Rethink EntryType model
-  
-  Deal with entry content zip/unzip (save hooks? just a function?)
-
-  Implement solr and basic indexing
+X Replicate index page
 
   Implement feeds
 
-  Implement other alt views
+  Implement by-user views
+
+  Implement by-tag views
+
+  Implement by-group views
+
+  Deal with entry content zip/unzip (save hooks? just a function?)
+  
+  Rethink EntryType model
+  
+  Implement solr and basic indexing
 
   Implement logins
 
   Implement openid
 
   Extend user profiles with openid info
+
+  Item edit/delete 
+
+  Tag edits
+
+  

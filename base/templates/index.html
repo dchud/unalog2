@@ -6,13 +6,16 @@
 
 	<div id='entryset'>
     
-	    <h2 class='timeline-daysep'>Sunday, 2008-03-30</h2>
+{% regroup entries by date_created.date as date_groups %}
+{% for date_group in date_groups %}
+	
+   	<h2 class='timeline-daysep'>{{ date_group.grouper }}</h2>
 
-{% for entry in entries %}
+	{% for entry in date_group.list %}
+		{% include "entry.html" %}
+	{% endfor %}       
 
-	{% include "entry.html" %}
-
-{% endfor %}       
+{% endfor %}
 
     </div>
 
