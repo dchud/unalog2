@@ -18,15 +18,17 @@ X Replicate index page
 
 X Pagination
 
-  Refactor admin w/r/to newforms-admin
+X Implement by-user views
+
+X Implement by-tag views
+
+  Fix URLs with non-ascii getting an md5sum that breaks
+
+  Implement by-group views (meh...)
 
   Implement feeds
 
-  Implement by-user views
-
-  Implement by-tag views
-
-  Implement by-group views
+  Refactor admin w/r/to newforms-admin
 
   Deal with entry content zip/unzip (save hooks? just a function?)
   

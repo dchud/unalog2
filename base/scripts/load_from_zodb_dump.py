@@ -124,7 +124,8 @@ def main (options, args):
             e = m.Entry(user=new_user)
             for attr in ['title', 'comment', 'content']:
                 setattr(e, attr, e_dict.get(attr, '') or '')
-            e.url = e_dict.get('url', '')[:500]
+            url, created = m.Url.objects.get_or_create(value=e_dict.get('url', '')[:500])
+            e.url = url
             e.is_private = bool(e_dict.get('is_private', False)) or False
             e.save()
             # groups

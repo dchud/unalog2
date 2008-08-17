@@ -1,3 +1,5 @@
+import hashlib
+
 from django.contrib.auth.models import User, Group
 from django.db import models as m
 
@@ -74,6 +76,19 @@ class Tag (m.Model):
         search_fields = ['name']
 
 
+class Url (m.Model):
+    value = m.CharField(max_length=500)
+    md5sum = m.CharField(max_length=32, db_index=True)
+
+    @property
+    def md5(self):
+        return hashlib.md5(self.value).hexdigest()
+
+    def save(self):
+        self.md5sum = self.md5
+        super(Url, self).save()
+        
+
 class Entry (m.Model):
     ENTRY_TYPE_CHOICES = [
         ('l', 'Web link'),
@@ -84,7 +99,7 @@ class Entry (m.Model):
         default=ENTRY_TYPE_CHOICES[0][0], db_index=True)
     user = m.ForeignKey(User, related_name='entries')
     title = m.TextField()
-    url = m.URLField(max_length=500, blank=True, db_index=True)
+    url = m.ForeignKey(Url, related_name='entries')
     comment = m.TextField(blank=True)
     is_private = m.BooleanField(default=False, db_index=True)
     content = m.TextField(blank=True)
@@ -97,9 +112,22 @@ class Entry (m.Model):
         return '<Entry: %s (%s)>' % (self.id, self.user.username)
         
     class Admin:
-        list_display = ['id', 'user', 'etype', 'url', 'is_private', 'date_created']
+        list_display = ['id', 'user', 'etype', 'is_private', 'date_created']
         list_filter = ['date_created', 'etype', 'is_private']
-        search_fields = ['id', 'title', 'url']
+        search_fields = ['id', 'title']
 
     class Meta:
         verbose_name_plural = 'entries'
+        
+    @property
+    def other_count(self, public_only=True):
+        """
+        Return the number of other entries that use the same URL.  Available
+        as a property to count public_only entries for easy use in templates.
+        """
+        qs = self.__class__.objects.filter(url=self.url)
+        qs = qs.exclude(id=self.id)
+        if public_only:
+            qs.filter(is_private=False)
+        return qs.count()
+
