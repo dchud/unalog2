@@ -1,5 +1,4 @@
-<div class='xfolkentry'>
-    <div class='tl-day'>
+<div class='xfolkentry tl-day'>
     <span class='tl-item-time'>{{ entry.date_created|date:"H:i" }}</span>
     <span class='tl-item-title'>
         by <a href='http://unalog.com/person/{{ entry.username }}'>
@@ -14,24 +13,29 @@
     </span>
 
 	{% ifequal entry.user user %}
-        <div class='tl-item-links'>
-            [<a href='http://unalog.com/my/entry/{{ entry.id }}/edit'><span class='bold'>edit</span></a>]
-            [<a href='http://unalog.com/my/entry/{{ entry.id }}/delete'><span class='bold'>delete</span></a>]
-        </div>
+    <div class='tl-item-links'>
+        [<a href='http://unalog.com/my/entry/{{ entry.id }}/edit'><span class='bold'>edit</span></a>]
+        [<a href='http://unalog.com/my/entry/{{ entry.id }}/delete'><span class='bold'>delete</span></a>]
+    </div>
 	{% endifequal %}
 
 	{% with entry.tags.count as tag_count %}
 		{% ifnotequal tag_count 0 %}
 			{% with entry.tags.all as tags %}
-        <div class='tl-item-links'>
+    <div class='tl-item-links'>
             with tag{{ tag_count|pluralize }}
     			{% for tag in tags %}
-            <a class='tag' rel='tag' href='/tag/{{ tag.name }}'>{{ tag.name }}</a>
+        <a class='tag' rel='tag' href='/tag/{{ tag.name }}'>{{ tag.name }}</a>
         		{% endfor %}
-        </div>
+    </div>
 			{% endwith %}
 		{% endifnotequal %}
 	{% endwith %}
 
-    </div>
+	{% if entry.comment %}
+	<div class='description'>
+		{{ entry.comment }}
+	</div>
+	{% endif %}
+
 </div>

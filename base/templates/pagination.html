@@ -1,0 +1,13 @@
+{% block pagination %}
+<ul id='pagination'>
+
+    {% if page.has_previous %}
+    <li><a href='{{ request.path }}?page={{ page.previous_page_number }}'>Newer</a></li>
+    {% endif %}
+
+	{% if page.has_next %}
+    <li><a href='{{ request.path }}?page={{ page.next_page_number }}'>Older</a></li>
+	{% endif %}
+
+</ul>
+{% endblock %}

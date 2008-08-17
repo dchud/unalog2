@@ -16,6 +16,10 @@ X Port template base
 
 X Replicate index page
 
+X Pagination
+
+  Refactor admin w/r/to newforms-admin
+
   Implement feeds
 
   Implement by-user views
@@ -26,18 +30,45 @@ X Replicate index page
 
   Deal with entry content zip/unzip (save hooks? just a function?)
   
-  Rethink EntryType model
-  
   Implement solr and basic indexing
 
   Implement logins
 
+  Extend user profiles with openid info
+
   Implement openid
 
-  Extend user profiles with openid info
+  Implement oauth 
 
   Item edit/delete 
 
   Tag edits
 
+
+
+
+After port-ability:
   
+  Redo layout?
+
+  Rethink EntryType model
+  
+  tag recommendations
+
+  better search results - facets, sort by, paging
+
+  comment threads/discussions
+
+  better bookmarklet
+
+  atompub interface
+
+  i18n?
+
+
+
+Way after:
+
+  different entry types - data
+
+  machine tags

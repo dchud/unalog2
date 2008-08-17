@@ -1,15 +1,14 @@
 {% extends "base.html" %}
 
 
-
 {% block content %}
 
 	<div id='entryset'>
     
-{% regroup entries by date_created.date as date_groups %}
+{% regroup page.object_list by date_created.date as date_groups %}
 {% for date_group in date_groups %}
 	
-   	<h2 class='timeline-daysep'>{{ date_group.grouper }}</h2>
+   	<h2 class='timeline-daysep'>{{ date_group.grouper|date:"l, Y-m-d" }}</h2>
 
 	{% for entry in date_group.list %}
 		{% include "entry.html" %}
@@ -19,13 +18,10 @@
 
     </div>
 
-	<ul id='pageturn'>
-
-	    <li><a href='?o=50&amp;w=50&amp;d=p'>Previous</a></li>
-
-	    <li><a href='?o=0&amp;w=50&amp;d=p'>Next</a></li>
-
-	</ul>
+	{% if page.has_other_pages %}
+		{% include 'pagination.html' %}
+	{% endif %}
+	
 
     <p>
     Filtered 1 entry.  [<a href='http://unalog.com/my/filter'>Edit filters</a>]

@@ -271,25 +271,25 @@ textarea {
 	overflow: auto;
 }
 
-ul#pageturn {
+ul#pagination {
 	margin: 0;
 	padding: 0;
 	list-style-type: none;
 	padding: 5px 0;
 }
 
-#pageturn li {
+#pagination li {
 	display: inline;
 }
 
-ul#pageturn li a {
+ul#pagination li a {
 	text-decoration: none;
 	color: #eee;
 	background-color: #777;
 	padding: 5px;
 }
 
-ul#pageturn li a:hover {
+ul#pagination li a:hover {
 	color: #fff;
 	background-color: #aaa;
 }

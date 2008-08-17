@@ -3,6 +3,9 @@
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
+from os.path import abspath, dirname
+UNALOG_ROOT = dirname(abspath(__file__))
+
 ADMINS = (
     # ('Your Name', 'your_email@domain.com'),
 )
