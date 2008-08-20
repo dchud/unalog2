@@ -22,11 +22,19 @@ X Implement by-user views
 
 X Implement by-tag views
 
-  Fix URLs with non-ascii getting an md5sum that breaks
+X Fix URLs with non-ascii getting an md5sum that breaks
 
-  Implement by-group views (meh...)
+PUNT WTF is wrong with the "url" template tag?
 
-  Implement feeds
+X Implement by-group views (meh...)
+
+X Implement feeds
+
+KILL Landing page for groups
+
+KILL Landing page for users
+
+X User tag page
 
   Refactor admin w/r/to newforms-admin
 
@@ -35,6 +43,8 @@ X Implement by-tag views
   Implement solr and basic indexing
 
   Implement logins
+
+  Revisit all views and fix w/r/to privacy/membership
 
   Extend user profiles with openid info
 

@@ -124,7 +124,13 @@ def main (options, args):
             e = m.Entry(user=new_user)
             for attr in ['title', 'comment', 'content']:
                 setattr(e, attr, e_dict.get(attr, '') or '')
-            url, created = m.Url.objects.get_or_create(value=e_dict.get('url', '')[:500])
+            url_value = e_dict.get('url', '')[:500]
+            try:
+                url_value_encoded = unicode(url_value).encode('utf8')
+            except UnicodeEncodeError:
+                print 'Unable to copy over url:', url
+                print traceback.print_exc()
+            url, created = m.Url.objects.get_or_create(value=url_value_encoded)
             e.url = url
             e.is_private = bool(e_dict.get('is_private', False)) or False
             e.save()

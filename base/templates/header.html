@@ -3,7 +3,7 @@
     <title>unalog: {{ title }}</title>
     
     <meta http-equiv="Content-Language" content="en" />
-    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 
     <meta http-equiv="Refresh" content="3600; URL=/" />
     
@@ -11,6 +11,8 @@
     <link type="text/css" rel="stylesheet" href="/s/css/style_print.css" media="print" />
     <link rel="shortcut icon" type="image/ico" href="http://unalog.com/favicon.ico" />
     
-    <link rel="alternate" type="application/rss+xml" title="RSS 1.0" href="/rss" />
-    
+	{% if feed_url %}
+    <link rel="alternate" type="application/atom+xml" title="Atom 1.0" href="{{ feed_url }}" />
+    {% endif %}
+
 </head>

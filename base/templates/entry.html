@@ -30,8 +30,12 @@
 		{% endifnotequal %}
 	{% endwith %}
 
+	{% for group in entry.groups.all %}
+		in group <a href='/group/{{ group.name }}/'>{{ group.name }}</a>
+	{% endfor %}
+
 	{% ifnotequal entry.other_count 0 %}
-		also by <a href='/url/{{ entry.url.md5sum }}/'>{{ entry.other_count }} other{{ other_count|pluralize }}</a>
+		also by <a href='/url/{{ entry.url.md5sum }}/'>{{ entry.other_count }} other{{ entry.other_count|pluralize }}</a>
 	{% endifnotequal %}
 	</div>
 

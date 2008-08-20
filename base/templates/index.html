@@ -5,7 +5,12 @@
 
 {% ifequal browse_type "user" %}
 <h2>User <a href='/user/{{ browse_user_name }}/'>{{ browse_user_name }}</a> 
-	[<a href='/user/{{ browse_user_name }}/'>tags</a>]</h2>
+	{% if tag %}
+	tag "{{ tag }}"
+	{% else %}
+	[<a href='/user/{{ browse_user_name }}/'>tags</a>]
+	{% endif %}
+	</h2>
 {% endifequal %}
 
 {% ifequal browse_type "tag" %}
@@ -14,6 +19,14 @@
 
 {% ifequal browse_type "url" %}
 <h2>URL <a href='{{ browse_url.value }}'>{{ browse_url.value|escape  }}</a></h2>
+{% endifequal %}
+
+{% ifequal browse_type "group" %}
+<h2>Group {{ browse_group.name }}
+	{% if tag %}
+	tag "{{ tag }}"
+	{% endif %}
+	</h2>
 {% endifequal %}
 
 	<div id='entryset'>
@@ -38,18 +51,6 @@
 
     <p>
     Filtered 1 entry.  [<a href='http://unalog.com/my/filter'>Edit filters</a>]
-    </p>
-
-    <p>
-        <a class='button' href='pda'>PDA</a>
-        &nbsp;
-        <a class='button' href='rss'>RSS</a>
-        &nbsp;
-        <a class='button' href='xbel'>XBEL</a>
-        &nbsp;
-        <a class='button' href='xobis'>XOBIS</a>
-        &nbsp;
-        <a class='button' href='mods'>MODS</a>
     </p>
 
 {% endblock %}

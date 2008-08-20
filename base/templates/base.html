@@ -19,15 +19,14 @@
     
                         logged in as: 
                         <span class='bold'>dchud</span>
-                        [<a href='http://unalog.com/my/'>my</a>]
-                        [<a href='http://unalog.com/person/dchud'>entries</a>]
-                        [<a href='http://unalog.com/person/dchud/tag/'>tags</a>]
-                        [<a href='http://unalog.com/my/group/'>groups</a>]
-                        [<a href='http://unalog.com/my/filter/'>filters</a>]
-                        [<a href='http://unalog.com/my/prefs'>prefs</a>]
-                        [<a href='http://unalog.com/logout'><span class='bold'>logout</span</a>]
-        
-                        [<a href='http://unalog.com/admin'>admin</a>]
+                        [<a href='/my/'>my</a>]
+                        [<a href='/user/dchud'>entries</a>]
+                        [<a href='/user/dchud/tag/'>tags</a>]
+                        [<a href='/my/group/'>groups</a>]
+                        [<a href='/my/filter/'>filters</a>]
+                        [<a href='/my/prefs'>prefs</a>]
+                        [<a href='/logout'><span class='bold'>logout</span</a>]
+                        [<a href='/admin'>admin</a>]
                 
                     </td>
                 </tr>
@@ -35,55 +34,38 @@
         </div>
         
         <div id='menu'>
-        
             <table width='100%' border='0' cellpadding='0' cellspacing='0'>
                 <tr>
                     <td>
             <ul>
-    
-                <li id='active'><a href='{% url 'unalog2.base.index' %}'>Home</a></li>
-            
-                <li><a href='http://unalog.com/person'>People</a></li>
-            
-                <li><a href='http://unalog.com/tag'>Tags</a></li>
-            
-                <li><a href='http://unalog.com/group'>Groups</a></li>
-            
-                <li><a href='http://unalog.com/about'>About</a></li>
-            
-                <li><a href='http://unalog.com/about/contact'>Contact</a></li>
-            
+        		<li id='active'><a href='/'>Home</a></li>
+                <li><a href='/user'>People</a></li>
+                <li><a href='/tag'>Tags</a></li>
+                <li><a href='/group'>Groups</a></li>
+                <li><a href='/about'>About</a></li>
+                <li><a href='/about/contact'>Contact</a></li>
                 <li><a href='http://onebiglibrary.net/taxonomy/term/1'>News</a></li>
-            
             </ul>
                     </td>
                     <td align='right'>
-                        <form class='search' action='http://unalog.com/search' method='get'>
+                        <form class='search' action='/search' method='get'>
                             Search:
                             <input type='text' name='q' width='10' />
-                            [<a href='http://unalog.com/about/search'>hints</a>]
+                            [<a href='/search'>hints</a>]
                         </form>
                     </td>
     
                 </tr>
             </table>
-            
         </div>
 
-
-    
 		<div id='content'>
 {% block content %}
 {% endblock %}
 		</div>
-
         
-            
 {% include "footer.html" %}
-            
-	    
-            
+		</div>
     </body>
-
 </html>
     
