@@ -18,6 +18,7 @@ def add_user (old={}):
     user = User.objects.create_user(username=old['id'],
         email=old.get('email', ''),
         password=old['new_password'])
+    user.password = old['new_password']
     user.is_admin = bool(old.get('is_admin', False)) or False
     user.is_staff = bool(old.get('is_admin', False)) or False
     user.is_active = bool(old.get('is_active', False)) or False

@@ -68,7 +68,8 @@ def tag(request, tag_name, format='html'):
         return atom_feed(page=page, title='latest from everybody for tag "%s"' % tag_name,
             link='/tag/%s/' % tag_name)
     return render_to_response('index.html', {
-        'title': 'tag "%s"' % tag_name, 
+        'title': 'tag "%s" for everyone' % tag_name, 
+        'browse_type': 'tag', 'tag': tag_name,
         'paginator': paginator, 'page': page, 
         'feed_url': '/tag/%s/feed/' % tag_name,
         }, context)
@@ -129,7 +130,7 @@ def user_tags(request, user_name):
     """
     context = RequestContext(request)
     user = get_object_or_404(m.User, username=user_name)
-    qs = m.Tag.objects.filter(entries__user=user)
+    qs = m.Tag.count_by_user(user)
     paginator, page = pagify(request, qs)
     return render_to_response('tags.html', {
         'title': "user %s's tags" % user_name,

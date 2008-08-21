@@ -1,14 +1,16 @@
 from django.conf.urls.defaults import *
+from django.contrib import admin
 
 from unalog2.settings import DEBUG, UNALOG_ROOT
+
+admin.autodiscover()
 
 urlpatterns = patterns('',
     # NOTE: don't enable this for real.
     (r'^s/(?P<path>.*)$', 'django.views.static.serve',
         {'document_root': "%s/base/media" % UNALOG_ROOT}),
 
-    # Uncomment this for admin:
-    (r'^admin/', include('django.contrib.admin.urls')),
+    (r'^admin/(.*)', admin.site.root),
     )
 
 urlpatterns += patterns('unalog2.base.views',

@@ -1,20 +1,28 @@
 {% extends "base.html" %}
 
-
 {% block content %}
 
 {% ifequal browse_type "user" %}
-<h2>User <a href='/user/{{ browse_user_name }}/'>{{ browse_user_name }}</a> 
+<h2><a href='/user/{{ browse_user_name }}/'>{{ browse_user_name }}</a> 
+	{% if browse_user.get_profile.url %}
+	- <a href='{{ browse_user.get_profile.url }}'>{{ browse_user.get_profile.url }}</a> - 
+	{% endif %}
 	{% if tag %}
 	tag "{{ tag }}"
 	{% else %}
-	[<a href='/user/{{ browse_user_name }}/'>tags</a>]
+	[<a href='/user/{{ browse_user_name }}/tags/'>tags</a>]
 	{% endif %}
 	</h2>
 {% endifequal %}
 
 {% ifequal browse_type "tag" %}
-<h2>Tag <a href='/tag/{{ tag }}/'>{{ tag }}</a></h2>
+<h2>Tag <a href='/tag/{{ tag }}/'>{{ tag }}</a>
+	{% if browse_user %}
+	for <a href='/user/{{ browse_user.username }}/'>{{ browse_user.username }}</a>
+	{% else %}
+	for everyone
+	{% endif %}
+	</h2>
 {% endifequal %}
 
 {% ifequal browse_type "url" %}

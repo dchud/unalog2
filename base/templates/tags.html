@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2><a href='/user/{{ browse_user.username }}/'>{{ browse_user.username }}</a>'s tags</h2>
+
+{% if page.object_list %}
+<table id='tags' class='gentable' cellspacing='1'>
+	<tbody>
+	{% for count, name in page.object_list %}
+		<tr>
+			<th valign='top'>{{ count }}</th>
+			<td class='coll1' valign='top'><a rel='tag' href='/user/{{ browse_user.username }}/tag/{{ name }}/'>{{ name }}</a></td>
+		</tr>
+	{% endfor %}
+	</tbody>
+</table>
+
+<ul id='pagination'>
+    {% if page.has_previous %}
+    <li><a href='{{ request.path }}?p={{ page.previous_page_number }}'>Used more</a></li>
+    {% endif %}
+
+	{% if page.has_next %}
+    <li><a href='{{ request.path }}?p={{ page.next_page_number }}'>Used less</a></li>
+	{% endif %}
+</ul>
+
+
+{% endif %}
+	
+
+{% endblock %}

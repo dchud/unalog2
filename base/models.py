@@ -1,7 +1,8 @@
 import hashlib
 
 from django.contrib.auth.models import User, Group
-from django.db import models as m
+from django.db import connection, models as m
+
 
 
 class GroupProfile (m.Model):
@@ -13,18 +14,12 @@ class GroupProfile (m.Model):
     date_modified = m.DateTimeField(auto_now=True)
     # NOTE: Am removing the notion of a group admin by choice
         
-    class Admin:
-        list_display = ['group', 'desc', 'is_private', 'date_created']
-        list_filter = ['is_private', 'date_created']
-        ordering = ['group']
-        search_fields = ['desc']
-        
     class Meta:
         ordering = ['group']
 
 # Duckpunch Group to offer up profile like User's get_profile just
 # because it looks weird to use User.get_profile and Group.profile
-def get_profile (group):
+def get_profile(group):
     return group.profile
     
 Group.get_profile = get_profile
@@ -40,13 +35,6 @@ class UserProfile (m.Model):
     group_invites = m.ManyToManyField(Group, related_name='invitees')
     date_modified = m.DateTimeField(auto_now=True)
 
-    class Admin:
-        list_display = ['user', 'url', 'is_private', 
-            'default_to_private_entry', 'date_modified']
-        list_filter = ['is_private', 'default_to_private_entry']
-        ordering = ['user']
-        search_fields = ['url']
-        
 
 class Filter (m.Model):
     user = m.ForeignKey(User, related_name='filters')
@@ -57,13 +45,6 @@ class Filter (m.Model):
     date_created = m.DateTimeField(auto_now_add=True, db_index=True)
     date_modified = m.DateTimeField(auto_now=True)
     
-    class Admin:
-        list_display = ['id', 'user', 'attr_name', 'value', 
-            'is_exact', 'is_active']
-        list_filter = ['attr_name', 'is_exact', 'is_active']
-        ordering = ['user', 'attr_name', 'value']
-        search_fields = ['value']
-
 
 class Tag (m.Model):
     name = m.CharField(max_length=50, unique=True)
@@ -71,10 +52,27 @@ class Tag (m.Model):
     def __unicode__ (self):
         return self.name
         
-    class Admin:
-        list_display = ['id', 'name']
-        search_fields = ['name']
-
+    @classmethod
+    def count(self, user=None):
+        """
+        Get a list of most frequently used tags (and counts), either for the
+        whole site, or for a particular user.
+        """
+        user_clause = 'AND base_entry.user_id=%s' % user.id
+        sql = """
+            SELECT COUNT(tag_id), name 
+            FROM base_entry_tags, base_entry, base_tag 
+            WHERE base_entry.id=base_entry_tags.entry_id 
+            AND base_tag.id=base_entry_tags.tag_id 
+            %s
+            GROUP BY tag_id, name 
+            ORDER BY COUNT(tag_id) DESC, name
+            """ % user_clause
+        cursor = connection.cursor()
+        cursor.execute(sql)
+        rows = cursor.fetchall()
+        return rows
+        
 
 class Url (m.Model):
     value = m.CharField(max_length=500)
@@ -111,11 +109,6 @@ class Entry (m.Model):
     def __unicode__ (self):
         return '<Entry: %s (%s)>' % (self.id, self.user.username)
         
-    class Admin:
-        list_display = ['id', 'user', 'etype', 'is_private', 'date_created']
-        list_filter = ['date_created', 'etype', 'is_private']
-        search_fields = ['id', 'title']
-
     class Meta:
         verbose_name_plural = 'entries'
         

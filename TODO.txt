@@ -36,25 +36,39 @@ KILL Landing page for users
 
 X User tag page
 
-  Refactor admin w/r/to newforms-admin
+X User tags page
+
+X Refactor admin w/r/to newforms-admin
 
   Deal with entry content zip/unzip (save hooks? just a function?)
-  
-  Implement solr and basic indexing
 
   Implement logins
 
+  Hide inactive users
+  
   Revisit all views and fix w/r/to privacy/membership
 
-  Extend user profiles with openid info
+  Revisit all views and fix w/r/to inactive users
 
-  Implement openid
+  Filters
 
-  Implement oauth 
+  Index/query
+
+  Search result pagination
+
+  Opensearch
+
+  404/500
 
   Item edit/delete 
 
   Tag edits
+
+  Implement openid
+
+  Extend user profiles with openid info
+
+  Implement oauth 
 
 
 
