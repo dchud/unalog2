@@ -19,20 +19,22 @@ def add_user (old={}):
         email=old.get('email', ''),
         password=old['new_password'])
     user.password = old['new_password']
-    user.is_admin = bool(old.get('is_admin', False)) or False
+    user.is_superuser = bool(old.get('is_admin', False)) or False
     user.is_staff = bool(old.get('is_admin', False)) or False
     user.is_active = bool(old.get('is_active', False)) or False
     old_name = old.get('name', '') or ''
     if old_name:
+        # Note: name lengths limited to 30 chars by django auth_user defaults,
+        # hence the [:30]s
         if ' ' in old_name:
             name_tokens = old_name.split(' ')
-            user.first_name = name_tokens[0]
-            if len(name_tokens) == 2:
+            user.first_name = name_tokens[0][:30]
+            if len(name_tokens) >= 2:
                 user.last_name = name_tokens[1]
             else:
-                user.last_name = ' '.join(name_tokens[1:])
+                user.last_name = ' '.join(name_tokens[1:])[:30]
         else:
-            user.first_name = old_name
+            user.first_name = old_name[:30]
 
     try:
         profile = user.get_profile()
@@ -128,11 +130,11 @@ def main (options, args):
             url_value = e_dict.get('url', '')[:500]
             try:
                 url_value_encoded = unicode(url_value).encode('utf8')
+                url, created = m.Url.objects.get_or_create(value=url_value_encoded)
+                e.url = url
             except UnicodeEncodeError:
                 print 'Unable to copy over url:', url
                 print traceback.print_exc()
-            url, created = m.Url.objects.get_or_create(value=url_value_encoded)
-            e.url = url
             e.is_private = bool(e_dict.get('is_private', False)) or False
             e.save()
             # groups

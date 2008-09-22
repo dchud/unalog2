@@ -40,11 +40,13 @@ X User tags page
 
 X Refactor admin w/r/to newforms-admin
 
-  Deal with entry content zip/unzip (save hooks? just a function?)
-
-  Implement logins
+X Implement logins
 
   Hide inactive users
+
+  404/500
+
+  Bookmarklets 
   
   Revisit all views and fix w/r/to privacy/membership
 
@@ -52,17 +54,26 @@ X Refactor admin w/r/to newforms-admin
 
   Filters
 
+  Deal with entry content zip/unzip (save hooks? just a function?)
+
   Index/query
 
-  Search result pagination
+  Search result pagination, facets, sort by
 
   Opensearch
-
-  404/500
 
   Item edit/delete 
 
   Tag edits
+
+  Reaper 
+
+  -- functionally complete --
+
+
+Next round:
+
+  Registration
 
   Implement openid
 
@@ -71,25 +82,26 @@ X Refactor admin w/r/to newforms-admin
   Implement oauth 
 
 
+Redesign: 
+
+  Refresh layout/links (simple)
+
+  Redo layout (not simple)
+
+
 
 
 After port-ability:
   
-  Redo layout?
-
   Rethink EntryType model
   
   tag recommendations
-
-  better search results - facets, sort by, paging
 
   comment threads/discussions
 
   better bookmarklet
 
   atompub interface
-
-  i18n?
 
 
 
@@ -98,3 +110,6 @@ Way after:
   different entry types - data
 
   machine tags
+
+  i18n?
+

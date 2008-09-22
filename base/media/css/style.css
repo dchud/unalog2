@@ -113,6 +113,11 @@ form.search a {
     height:  5px;
 }
 
+#messages {
+    color: #993333;
+    font-size: small;
+}
+
 #content {
 	padding: 10px;
 }

@@ -17,6 +17,7 @@
                     </td>
                     <td style='color:#eee;' align='right' valign='bottom'>
     
+						{% if user.is_authenticated %}
                         logged in as: 
                         <span class='bold'>dchud</span>
                         [<a href='/my/'>my</a>]
@@ -25,9 +26,18 @@
                         [<a href='/my/group/'>groups</a>]
                         [<a href='/my/filter/'>filters</a>]
                         [<a href='/my/prefs'>prefs</a>]
-                        [<a href='/logout'><span class='bold'>logout</span</a>]
+                        [<a href='/logout/'><span class='bold'>logout</span</a>]
+							{% if user.is_staff %}
                         [<a href='/admin'>admin</a>]
-                
+            				{% endif %}
+						{% else %}
+						<form id='loginform' action='/login/' method='post'>
+                     name <input name='user_id' type='text' size='8' />
+                     pass <input name='user_pass' type='password' size='8' />
+                     <input type='submit' name='login' value='login' />
+                     [or: <a href='/register/'>register</a>]
+	                    </form>
+						{% endif %}
                     </td>
                 </tr>
             </table>
@@ -58,6 +68,25 @@
                 </tr>
             </table>
         </div>
+
+		{% if messages %}
+		<div id='messages'>
+			<ul>
+			{% for message in messages %}
+				<li>{{ message }}</li>
+			{% endfor %}
+			</ul>
+		</div>
+		{% endif %}
+
+		{% if request.session.message %}
+		<div id='messages'>
+			<ul>
+				<li>{{ request.session.message }}</li>
+			</ul>
+		</div>
+		{% endif %}
+
 
 		<div id='content'>
 {% block content %}

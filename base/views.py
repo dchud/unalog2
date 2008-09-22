@@ -1,5 +1,7 @@
+from django.contrib.auth import authenticate, login, logout
 from django.core.paginator import Paginator
-from django.http import Http404, HttpResponse, HttpResponsePermanentRedirect
+from django.http import Http404, HttpResponse, HttpResponseRedirect
+from django.http import HttpResponsePermanentRedirect
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.utils import feedgenerator
@@ -40,6 +42,55 @@ def atom_feed(page, **kwargs):
         mimetype='application/atom+xml')
         
 
+def login_view(request):
+    """
+    Log a user into the system.
+    """
+    context = RequestContext(request)
+    next_path = request.POST.get('next', '/')
+    # First check to see if they're already logged in
+    if request.user.is_authenticated():
+        return HttpResponseRedirect(next_path)
+        
+    if request.method == 'POST':
+        try: 
+            username = request.POST.get('user_id', None)
+            password = request.POST.get('user_pass', None)
+            user = authenticate(username=username, password=password)
+            if user is None:
+                raise Exception('Could not authenticate: user is None')
+            if user.is_active:
+                login(request, user)
+                request.user.message_set.create(message='Logged in.')
+                return HttpResponseRedirect(next_path)
+            else:
+                raise Exception('User not active')
+        except Exception, e:
+            # FIXME: log appropriately, please
+            #import traceback
+            #print traceback.print_exc()
+            pass
+    # Assume it didn't work, or their cookies are disabled, or they GET'd.
+    request.session['message'] = 'Invalid username or password.  Please try again.'
+    return HttpResponseRedirect(next_path)
+
+    
+def logout_view(request):
+    """
+    Log a user out of the system.
+    """
+    logout(request)
+    return HttpResponseRedirect('/')
+    
+def register_view(request):
+    """
+    Register a new user in the system.
+    """
+    context = RequestContext(request)
+    return render_to_response('register.html', 
+        {'title': 'Registration disabled'},
+        context)
+
 def index(request, format='html'):
     """
     Basic view for everybody.
@@ -55,6 +106,7 @@ def index(request, format='html'):
         'paginator': paginator, 'page': page, 
         'feed_url': '/feed/',
         }, context)
+        
         
 def tag(request, tag_name, format='html'):
     """
@@ -73,7 +125,6 @@ def tag(request, tag_name, format='html'):
         'paginator': paginator, 'page': page, 
         'feed_url': '/tag/%s/feed/' % tag_name,
         }, context)
-
 
         
 def person(request, user_name):
@@ -130,7 +181,7 @@ def user_tags(request, user_name):
     """
     context = RequestContext(request)
     user = get_object_or_404(m.User, username=user_name)
-    qs = m.Tag.count_by_user(user)
+    qs = m.Tag.count(user)
     paginator, page = pagify(request, qs)
     return render_to_response('tags.html', {
         'title': "user %s's tags" % user_name,

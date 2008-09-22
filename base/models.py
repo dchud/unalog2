@@ -53,12 +53,15 @@ class Tag (m.Model):
         return self.name
         
     @classmethod
-    def count(self, user=None):
+    def count(self, user=None, order='freq'):
         """
         Get a list of most frequently used tags (and counts), either for the
         whole site, or for a particular user.
         """
         user_clause = 'AND base_entry.user_id=%s' % user.id
+        order_clause = 'ORDER BY COUNT(tag_id) DESC, name'
+        if order == 'alpha':
+            order_clause = 'ORDER BY name, COUNT(tag_id)'
         sql = """
             SELECT COUNT(tag_id), name 
             FROM base_entry_tags, base_entry, base_tag 
@@ -66,8 +69,8 @@ class Tag (m.Model):
             AND base_tag.id=base_entry_tags.tag_id 
             %s
             GROUP BY tag_id, name 
-            ORDER BY COUNT(tag_id) DESC, name
-            """ % user_clause
+            %s
+            """ % (user_clause, order_clause)
         cursor = connection.cursor()
         cursor.execute(sql)
         rows = cursor.fetchall()
@@ -82,9 +85,9 @@ class Url (m.Model):
     def md5(self):
         return hashlib.md5(self.value).hexdigest()
 
-    def save(self):
+    def save(self, force_insert=False, force_update=False):
         self.md5sum = self.md5
-        super(Url, self).save()
+        super(Url, self).save(force_insert, force_update)
         
 
 class Entry (m.Model):
