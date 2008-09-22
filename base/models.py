@@ -53,24 +53,32 @@ class Tag (m.Model):
         return self.name
         
     @classmethod
-    def count(self, user=None, order='freq'):
+    def count(self, user=None, request_user=None, order='freq'):
         """
         Get a list of most frequently used tags (and counts), either for the
-        whole site, or for a particular user.
+        whole site, or for a particular user.  Filter out tags used with private
+        entries.
         """
+        if user == request_user:
+            private_clause = ''
+        else:
+            # NOTE: postgresql-specific value
+            private_clause = 'AND base_entry.is_private is false'
         user_clause = 'AND base_entry.user_id=%s' % user.id
         order_clause = 'ORDER BY COUNT(tag_id) DESC, name'
+
         if order == 'alpha':
             order_clause = 'ORDER BY name, COUNT(tag_id)'
         sql = """
             SELECT COUNT(tag_id), name 
             FROM base_entry_tags, base_entry, base_tag 
             WHERE base_entry.id=base_entry_tags.entry_id 
+            %s
             AND base_tag.id=base_entry_tags.tag_id 
             %s
             GROUP BY tag_id, name 
             %s
-            """ % (user_clause, order_clause)
+            """ % (private_clause, user_clause, order_clause)
         cursor = connection.cursor()
         cursor.execute(sql)
         rows = cursor.fetchall()

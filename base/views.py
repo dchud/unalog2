@@ -9,6 +9,18 @@ from django.utils import feedgenerator
 from unalog2.base import models as m
 
 
+def standard_entries():
+    """
+    Start a base queryset of entries common to many pages.
+    """
+    qs = m.Entry.objects.exclude(user__is_active=False)
+    # Note:  on the following, qs.exclude...=True blows up.
+    qs = qs.filter(user__userprofile__is_private=False)
+    qs = qs.exclude(is_private=True)
+    qs = qs.order_by('-date_created')
+    return qs
+
+
 def pagify(request, qs):
     """
     Convenience helper to paginate out a query set.
@@ -40,7 +52,7 @@ def atom_feed(page, **kwargs):
             categories=[tag.name for tag in entry.tags.all()])
     return HttpResponse(feed.writeString('utf8'), 
         mimetype='application/atom+xml')
-        
+
 
 def login_view(request):
     """
@@ -81,7 +93,8 @@ def logout_view(request):
     """
     logout(request)
     return HttpResponseRedirect('/')
-    
+
+
 def register_view(request):
     """
     Register a new user in the system.
@@ -91,19 +104,21 @@ def register_view(request):
         {'title': 'Registration disabled'},
         context)
 
+
 def index(request, format='html'):
     """
     Basic view for everybody.
     """
     context = RequestContext(request)
-    qs = m.Entry.objects.order_by('-date_created')
-    qs = qs.exclude(is_private=True)
+    qs = standard_entries()
     paginator, page = pagify(request, qs)
     if format == 'atom':
         return atom_feed(page=page, title='latest from everybody')
     return render_to_response('index.html', {
+        'view_hidden': True,
         'title': 'home', 
         'paginator': paginator, 'page': page, 
+        'view_hidden': False,
         'feed_url': '/feed/',
         }, context)
         
@@ -113,8 +128,8 @@ def tag(request, tag_name, format='html'):
     Basic view for any tag.
     """
     context = RequestContext(request)
-    qs = m.Entry.objects.filter(tags__name=tag_name).order_by('-date_created')
-    qs = qs.exclude(is_private=True)
+    qs = standard_entries()
+    qs = qs.filter(tags__name=tag_name)
     paginator, page = pagify(request, qs)
     if format == 'atom':
         return atom_feed(page=page, title='latest from everybody for tag "%s"' % tag_name,
@@ -133,47 +148,87 @@ def person(request, user_name):
     """
     return HttpResponsePermanentRedirect('/user/%s/' % user_name)
 
+
+def may_see_user(request_user, entry_user):
+    may_see = True
+    message = ''
+    if entry_user.is_active == False:
+        may_see = False
+        message = 'User is not active'
+    if entry_user.get_profile().is_private:
+        if request_user != entry_user:
+            may_see = False
+            message = "This user's entries are private."
+    return (may_see, message)
+
+
 def user(request, user_name, format='html'):
     """
     Basic view for a user.
     """
     context = RequestContext(request)
     user = get_object_or_404(m.User, username=user_name)
+    may_see, message = may_see_user(request.user, user)
+    if not may_see:
+        return render_to_response('index.html', {
+            'view_hidden': True,
+            'title': 'user %s' % user_name,
+            'message': message,
+            }, context)
+        
     qs = m.Entry.objects.filter(user=user)
+    # Hide public entry_user's private stuff unless it's the user themself
+    if user != request.user:
+        qs = qs.exclude(is_private=True)
     qs = qs.order_by('-date_created')
-    qs = qs.exclude(is_private=True)
     paginator, page = pagify(request, qs)
+        
     if format == 'atom':
         return atom_feed(page=page, title='latest from %s' % user_name,
             link='http://unalog.com/user/%s' % user_name)
     return render_to_response('index.html', {
+        'view_hidden': False,
         'title': 'user %s' % user_name,
         'paginator': paginator, 'page': page,
         'browse_type': 'user', 'browse_user': user, 
         'browse_user_name': user.username,
         'feed_url': '/user/%s/feed/' % user_name,
         }, context)
-            
+    
+
 def user_tag(request, user_name, tag_name='', format='html'):
     """
     View one user's entries with a particular tag.
     """
     context = RequestContext(request)
     user = get_object_or_404(m.User, username=user_name)
+    may_see, message = may_see_user(request.user, user)
+    if not may_see:
+        return render_to_response('index.html', {
+            'view_hidden': True,
+            'title': 'user %s' % user_name,
+            'message': message,
+            }, context)
+
     qs = m.Entry.objects.filter(user=user, tags__name=tag_name)
+    # Hide public entry_user's private stuff unless it's the user themself
+    if user != request.user:
+        qs = qs.exclude(is_private=True)
     qs = qs.order_by('-date_created')
-    qs = qs.exclude(is_private=True)
     paginator, page = pagify(request, qs)
+
     if format == 'atom':
         return atom_feed(page=page, 
             title='latest from %s - "%s"' % (user_name, tag_name),
             link='http://unalog.com/user/%s/tag/%s/' % (user_name, tag_name))
     return render_to_response('index.html', {
+        'view_hidden': False,
         'title': "user %s's tag %s" % (user_name, tag_name),
         'paginator': paginator, 'page': page,
         'browse_type': 'tag', 'browse_user': user, 'tag': tag_name,
         'feed_url': '/user/%s/tag/%s/feed/' % (user_name, tag_name),
         }, context)
+    
     
 def user_tags(request, user_name):
     """
@@ -181,9 +236,19 @@ def user_tags(request, user_name):
     """
     context = RequestContext(request)
     user = get_object_or_404(m.User, username=user_name)
-    qs = m.Tag.count(user)
+    may_see, message = may_see_user(request.user, user)
+    if not may_see:
+        return render_to_response('index.html', {
+            'view_hidden': True,
+            'title': 'user %s' % user_name,
+            'message': message,
+            }, context)
+    
+    qs = m.Tag.count(user=user, request_user=request.user)
     paginator, page = pagify(request, qs)
+    
     return render_to_response('tags.html', {
+        'view_hidden': False,
         'title': "user %s's tags" % user_name,
         'paginator': paginator, 'page': page,
         'browse_user': user,
@@ -196,13 +261,14 @@ def url_all(request, md5sum='', format='html'):
     """
     context = RequestContext(request)
     url = get_object_or_404(m.Url, md5sum=md5sum)
-    qs = m.Entry.objects.filter(url=url)
-    qs = qs.exclude(is_private=True)
+    qs = standard_entries()
+    qs = qs.filter(url=url)
     paginator, page = pagify(request, qs)
     if format == 'atom':
         return atom_feed(page=page, title='latest for url',
             link='http://unalog.com/url/%s/' % md5sum)
     return render_to_response('index.html', {
+        'view_hidden': False,
         'title': "url %s" % url.value[:50],
         'paginator': paginator, 'page': page,
         'browse_type': 'url', 'browse_url': url,
@@ -210,15 +276,26 @@ def url_all(request, md5sum='', format='html'):
         }, context)
     
 # Groups.
+
+def may_see_group(request_user, group):
+    may_see = True
+    message = ''
+    if group.get_profile().is_private:
+        if request_user in group.user_set.all():
+            may_see = False
+            message = "This group's entries are private."
+    return (may_see, message)
+
+    
 def group(request, group_name, format='html'):
     """
     Basic view for a group.
     """
     context = RequestContext(request)
     group = get_object_or_404(m.Group, name=group_name)
+    
     qs = m.Entry.objects.filter(groups__name=group_name)
     qs = qs.order_by('-date_created')
-    qs = qs.exclude(is_private=True)
     paginator, page = pagify(request, qs)
     if format == 'atom':
         return atom_feed(page=page, title='latest from group "%s"' % group_name,
