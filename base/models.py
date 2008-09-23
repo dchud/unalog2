@@ -64,17 +64,25 @@ class Tag (m.Model):
         else:
             # NOTE: postgresql-specific value
             private_clause = 'AND base_entry.is_private is false'
-        user_clause = 'AND base_entry.user_id=%s' % user.id
+            
+        if user:
+            user_clause = 'AND base_entry.user_id=%s' % user.id
+        else: 
+            user_clause = ''
         order_clause = 'ORDER BY COUNT(tag_id) DESC, name'
 
         if order == 'alpha':
             order_clause = 'ORDER BY name, COUNT(tag_id)'
+        elif order == 'recent':
+            order_clause = 'ORDER BY tag_id DESC, name'
         sql = """
-            SELECT COUNT(tag_id), name 
-            FROM base_entry_tags, base_entry, base_tag 
+            SELECT COUNT(tag_id), name, tag_id
+            FROM base_entry_tags, base_entry, base_tag, auth_user
             WHERE base_entry.id=base_entry_tags.entry_id 
-            %s
             AND base_tag.id=base_entry_tags.tag_id 
+            AND auth_user.id=base_entry.user_id
+            AND auth_user.is_active is true
+            %s
             %s
             GROUP BY tag_id, name 
             %s

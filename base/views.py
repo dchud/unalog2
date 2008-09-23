@@ -141,6 +141,22 @@ def tag(request, tag_name, format='html'):
         'feed_url': '/tag/%s/feed/' % tag_name,
         }, context)
 
+def tags_all(request):
+    """
+    Summary page for overall tag usage.
+    """
+    context = RequestContext(request)
+    qs_count = m.Tag.count()
+    count_paginator, count_page = pagify(request, qs_count)
+    qs_alpha = m.Tag.count(order='alpha')
+    alpha_paginator, alpha_page = pagify(request, qs_alpha)
+    return render_to_response('tags.html', {
+        'view_hidden': False,
+        'title': 'all tags',
+        'paginator': count_paginator, 'page': count_page,
+        'alpha_paginator': alpha_paginator, 'alpha_page': alpha_page,
+        }, context)
+
         
 def person(request, user_name):
     """
