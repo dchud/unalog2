@@ -42,16 +42,16 @@ X Refactor admin w/r/to newforms-admin
 
 X Implement logins
 
-  Hide inactive users
+X Revisit all views and fix w/r/to privacy/membership
 
-  404/500
+X Revisit all views and fix w/r/to inactive users
+
+X 404/500
+
+  Entry form
 
   Bookmarklets 
   
-  Revisit all views and fix w/r/to privacy/membership
-
-  Revisit all views and fix w/r/to inactive users
-
   Filters
 
   Deal with entry content zip/unzip (save hooks? just a function?)

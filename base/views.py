@@ -274,6 +274,7 @@ def url_all(request, md5sum='', format='html'):
         'browse_type': 'url', 'browse_url': url,
         'feed_url': '/url/%s/feed/' % md5sum,
         }, context)
+
     
 # Groups.
 
@@ -281,9 +282,10 @@ def may_see_group(request_user, group):
     may_see = True
     message = ''
     if group.get_profile().is_private:
-        if request_user in group.user_set.all():
+        if not request_user in group.user_set.all():
             may_see = False
             message = "This group's entries are private."
+    print 'may_see:', may_see, 'message:', message
     return (may_see, message)
 
     
@@ -293,14 +295,26 @@ def group(request, group_name, format='html'):
     """
     context = RequestContext(request)
     group = get_object_or_404(m.Group, name=group_name)
+    may_see, message = may_see_group(request.user, group)
+    
+    if not may_see:
+        return render_to_response('index.html', {
+            'view_hidden': True,
+            'title': 'group %s' % group_name,
+            'message': message,
+            }, context)
     
     qs = m.Entry.objects.filter(groups__name=group_name)
     qs = qs.order_by('-date_created')
+    # If they're not a member, don't let them see private stuff
+    if not request.user in group.user_set.all():
+        qs.exclude(is_private=True)
     paginator, page = pagify(request, qs)
     if format == 'atom':
         return atom_feed(page=page, title='latest from group "%s"' % group_name,
             link='http://unalog.com/group/%s/' % group_name)
     return render_to_response('index.html', {
+        'view_hidden': False,
         'title': 'Group %s' % group_name,
         'paginator': paginator, 'page': page,
         'browse_type': 'group', 'browse_group': group, 
@@ -313,15 +327,27 @@ def group_tag(request, group_name, tag_name='', format='html'):
     """
     context = RequestContext(request)
     group = get_object_or_404(m.Group, name=group_name)
+    may_see, message = may_see_group(request.user, group)
+    
+    if not may_see:
+        return render_to_response('index.html', {
+            'view_hidden': True,
+            'title': 'group %s' % group_name,
+            'message': message,
+            }, context)
+    
     qs = m.Entry.objects.filter(groups__name=group_name, tags__name=tag_name)
     qs = qs.order_by('-date_created')
-    qs = qs.exclude(is_private=True)
+    # If they're not a member, don't let them see private stuff
+    if not request.user in group.user_set.all():
+        qs.exclude(is_private=True)
     paginator, page = pagify(request, qs)
     if format == 'atom':
         return atom_feed(page=page, 
             title='latest from group "%s" tag "%s"' % (group_name, tag_name),
             link='http://unalog.com/group/%s/tag/%s/' % (group_name, tag_name))
     return render_to_response('index.html', {
+        'view_hidden': False,
         'title': "Group %s's tag %s" % (group_name, tag_name),
         'paginator': paginator, 'page': page,
         'browse_type': 'group', 'browse_group': group, 'tag': tag_name,
