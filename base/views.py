@@ -1,12 +1,29 @@
-from django.contrib.auth import authenticate, login, logout
+import re
+
+from django.conf import settings
+from django.contrib.auth import authenticate, logout
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.views import login
 from django.core.paginator import Paginator
+from django import forms
 from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.http import HttpResponsePermanentRedirect
 from django.shortcuts import render_to_response, get_object_or_404
-from django.template import RequestContext
+from django.template import RequestContext, loader
 from django.utils import feedgenerator
 
 from unalog2.base import models as m
+
+
+class UrlEntryForm(forms.Form):
+    url = forms.URLField(required=True, label='URL')
+    title = forms.CharField(required=True)
+    tags = forms.CharField(required=False, help_text='Separate with spaces')
+    is_private = forms.BooleanField(required=False)
+    comment = forms.CharField(required=False, widget=forms.Textarea)
+    content = forms.CharField(required=False, widget=forms.Textarea)
+    
+    
 
 
 def standard_entries():
@@ -36,6 +53,82 @@ def pagify(request, qs):
     return paginator, page
 
 
+def old_stack_link(request):
+    """
+    Redirect from old bookmarklet path.
+    """
+    return HttpResponseRedirect('/entry/url/new')
+    
+
+BAD_CHARS = """ ~`@#$%^&*()?\/,<>;\"'"""
+RE_BAD_CHARS = re.compile(r'[%s]' % BAD_CHARS)
+
+@login_required
+def new_url_entry(request):
+    """
+    Save a new URL entry.
+    """
+    context = RequestContext(request)
+    d = {}
+    if request.method == 'POST':
+        form = UrlEntryForm(request.POST)
+        if form.is_valid():
+            url_str = form.cleaned_data['url']
+            title = form.cleaned_data['title']
+            is_private = form.cleaned_data['is_private']
+            tags_orig = form.cleaned_data['tags']
+            comment = form.cleaned_data['comment']
+            content = form.cleaned_data['content']
+            
+            new_entry = m.Entry(user=request.user, title=title, 
+                is_private=is_private,
+                comment=comment, content=content)
+
+            url, was_created = m.Url.objects.get_or_create(value=url_str)
+            new_entry.url = url
+            
+            # Save that sucker before adding many-to-manys
+            new_entry.save()
+            
+            tag_strs = tags_orig.split(' ')
+            # Remove repeats
+            for tag in tag_strs:
+                while tag_strs.count(tag) > 1:
+                    tag_strs.remove(tag)
+            # Remove empty tags like ''
+            tag_strs = [tag for tag in tag_strs if not tag == '']
+            # Remove bad tags, for bad chars or too lengthy
+            for tag_str in tag_strs:
+                if RE_BAD_CHARS.search(tag_str):
+                    tag_strs.remove(tag_str)
+                elif len(tag_str) > 30:
+                    tag_strs.remove(tag_str)
+            # Build up and add real tag objects
+            for tag_str in tag_strs:
+                tag, was_created = m.Tag.objects.get_or_create(name=tag_str)
+                new_entry.tags.add(tag)
+
+            
+            request.user.message_set.create(message='Saved your entry.')
+            return HttpResponseRedirect('/')
+    
+    else:
+        form = UrlEntryForm()
+    return render_to_response('new_entry.html', {'form': form}, context)
+
+
+def indexing_js(request):
+    """
+    Return the base indexing javascript.  Rendered as a template to allow
+    settings-based url base value, only.  Ugh.
+    """
+    t = loader.get_template('indexing.js')
+    c = RequestContext(request, {'site_url': settings.UNALOG_URL})
+    
+    return HttpResponse(t.render(c), mimetype='application/javascript')
+
+
+
 def atom_feed(page, **kwargs):
     """
     Simple Atom Syndication Format 1.0 feed.
@@ -53,38 +146,6 @@ def atom_feed(page, **kwargs):
     return HttpResponse(feed.writeString('utf8'), 
         mimetype='application/atom+xml')
 
-
-def login_view(request):
-    """
-    Log a user into the system.
-    """
-    context = RequestContext(request)
-    next_path = request.POST.get('next', '/')
-    # First check to see if they're already logged in
-    if request.user.is_authenticated():
-        return HttpResponseRedirect(next_path)
-        
-    if request.method == 'POST':
-        try: 
-            username = request.POST.get('user_id', None)
-            password = request.POST.get('user_pass', None)
-            user = authenticate(username=username, password=password)
-            if user is None:
-                raise Exception('Could not authenticate: user is None')
-            if user.is_active:
-                login(request, user)
-                request.user.message_set.create(message='Logged in.')
-                return HttpResponseRedirect(next_path)
-            else:
-                raise Exception('User not active')
-        except Exception, e:
-            # FIXME: log appropriately, please
-            #import traceback
-            #print traceback.print_exc()
-            pass
-    # Assume it didn't work, or their cookies are disabled, or they GET'd.
-    request.session['message'] = 'Invalid username or password.  Please try again.'
-    return HttpResponseRedirect(next_path)
 
     
 def logout_view(request):

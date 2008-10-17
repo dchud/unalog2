@@ -32,8 +32,8 @@
                         [<a href='/logout/'><span class='bold'>logout</span</a>]
 						{% else %}
 						<form id='loginform' action='/login/' method='post'>
-                     name <input name='user_id' type='text' size='8' />
-                     pass <input name='user_pass' type='password' size='8' />
+                     name <input name='username' type='text' size='8' />
+                     pass <input name='password' type='password' size='8' />
                      <input type='submit' name='login' value='login' />
                      [or: <a href='/register/'>register</a>]
 	                    </form>
@@ -73,14 +73,6 @@
 			{% for message in messages %}
 				<li>{{ message }}</li>
 			{% endfor %}
-			</ul>
-		</div>
-		{% endif %}
-
-		{% if request.session.message %}
-		<div id='messages'>
-			<ul>
-				<li>{{ request.session.message }}</li>
 			</ul>
 		</div>
 		{% endif %}

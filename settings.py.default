@@ -6,6 +6,9 @@ TEMPLATE_DEBUG = DEBUG
 from os.path import abspath, dirname
 UNALOG_ROOT = dirname(abspath(__file__))
 
+# Set to your local site's host:port, *not* including trailing slash
+UNALOG_URL = 'http://localhost:8080'
+
 ADMINS = (
     # ('Your Name', 'your_email@domain.com'),
 )
@@ -91,3 +94,5 @@ INSTALLED_APPS = (
 
 AUTH_PROFILE_MODULE = 'base.userprofile'
 
+LOGIN_URL = '/login'
+LOGIN_REDIRECT_URL = '/'

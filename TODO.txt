@@ -51,7 +51,12 @@ X 404/500
 X Tag landing page
 
   Entry form
-
+  X login/next
+  X tags
+  groups
+  check for existing entry
+	
+	
   Bookmarklets 
   
   Filters

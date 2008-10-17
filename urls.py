@@ -5,19 +5,29 @@ from unalog2.settings import DEBUG, UNALOG_ROOT
 
 admin.autodiscover()
 
+
 urlpatterns = patterns('',
     # NOTE: don't enable this for real.
     (r'^s/(?P<path>.*)$', 'django.views.static.serve',
         {'document_root': "%s/base/media" % UNALOG_ROOT}),
 
     (r'^admin/(.*)', admin.site.root),
+
+    url(r'^login/$', 'django.contrib.auth.views.login', 
+        {'template_name': 'login.html'}),
+
     )
 
 urlpatterns += patterns('unalog2.base.views',
     # Site-wide
     url(r'^$', 'index', {'format': 'html'}, name='base-home'),
+
+    # TEST
+    url(r'^my/stack/link', 'old_stack_link', name='old-stack-link'),
+    url(r'^entry/url/new', 'new_url_entry', name='new-url-entry'),
+    url(r'^indexing.js$', 'indexing_js', name='indexing-js'),
     
-    url(r'^login/$', 'login_view', name='login'),
+    
     url(r'^logout/$', 'logout_view', name='logout'),
     url(r'^register/$', 'register_view', name='register'),
     
