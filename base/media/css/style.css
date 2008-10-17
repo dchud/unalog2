@@ -172,7 +172,7 @@ input[type=submit], input[type=button] {
 	background: #eee;
 	color: #222;
 	border: 1px outset #ccc;
-	padding .1em .5em;
+	padding: .1em .5em;
 }
 
 input[type=submit]:hover, input[type=button]:hover { 

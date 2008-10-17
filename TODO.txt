@@ -53,9 +53,10 @@ X Tag landing page
   Entry form
   X login/next
   X tags
+  X edit
+  delete
   groups
   check for existing entry
-	
 	
   Bookmarklets 
   

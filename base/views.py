@@ -22,8 +22,6 @@ class UrlEntryForm(forms.Form):
     is_private = forms.BooleanField(required=False)
     comment = forms.CharField(required=False, widget=forms.Textarea)
     content = forms.CharField(required=False, widget=forms.Textarea)
-    
-    
 
 
 def standard_entries():
@@ -108,14 +106,85 @@ def new_url_entry(request):
                 tag, was_created = m.Tag.objects.get_or_create(name=tag_str)
                 new_entry.tags.add(tag)
 
-            
             request.user.message_set.create(message='Saved your entry.')
             return HttpResponseRedirect('/')
-    
     else:
         form = UrlEntryForm()
     return render_to_response('new_entry.html', {'form': form}, context)
 
+
+def url_entry(request, entry_id):
+    """
+    View an existing entry.
+    """
+    context = RequestContext(request)
+    entry = get_object_or_404(m.Entry, id=entry_id)
+    return render_to_response('url_entry.html', {'entry': entry}, context)
+
+
+@login_required
+def edit_url_entry(request, entry_id):
+    """
+    Update an existing URL entry.
+    """
+    context = RequestContext(request)
+    entry = get_object_or_404(m.Entry, id=entry_id)
+    if not entry.user == request.user:
+        return HttpResponseRedirect('/entry/%s' % entry.id)
+    if request.method == 'POST':
+        # NOTE: this is pretty redundant.  not completely, but pretty.
+        form = UrlEntryForm(request.POST)
+        if form.is_valid():
+            url_str = form.cleaned_data['url']
+            tags_orig = form.cleaned_data['tags']
+            entry.title = form.cleaned_data['title']
+            entry.is_private = form.cleaned_data['is_private']
+            entry.comment = form.cleaned_data['comment']
+            entry.content = form.cleaned_data['content']
+            
+            url, was_created = m.Url.objects.get_or_create(value=url_str)
+            entry.url = url
+            
+            # Remove original tags
+            for tag in entry.tags.all():
+                entry.tags.remove(tag)
+            
+            tag_strs = tags_orig.split(' ')
+            # Remove repeats
+            for tag in tag_strs:
+                while tag_strs.count(tag) > 1:
+                    tag_strs.remove(tag)
+            # Remove empty tags like ''
+            tag_strs = [tag for tag in tag_strs if not tag == '']
+            # Remove bad tags, for bad chars or too lengthy
+            for tag_str in tag_strs:
+                if RE_BAD_CHARS.search(tag_str):
+                    tag_strs.remove(tag_str)
+                elif len(tag_str) > 30:
+                    tag_strs.remove(tag_str)
+            # Build up and add real tag objects
+            for tag_str in tag_strs:
+                tag, was_created = m.Tag.objects.get_or_create(name=tag_str)
+                entry.tags.add(tag)
+
+            entry.save()
+
+            request.user.message_set.create(message='Saved your entry.')
+            #return HttpResponseRedirect('/entry/%s/edit' % entry.id)
+            return HttpResponseRedirect('/')
+    else:
+        data = {
+            'url': entry.url.value,
+            'title': entry.title,
+            'comment': entry.comment,
+            'content': entry.content,
+            'tags': ' '.join([t.name for t in entry.tags.all()]),
+            'is_private': entry.is_private,
+            }
+        form = UrlEntryForm(data)
+    return render_to_response('update_entry.html', 
+        {'form': form, 'entry': entry, 'foo': 'foo'}, context)
+    
 
 def indexing_js(request):
     """

@@ -50,6 +50,6 @@ if (document.location.href.indexOf(unaURL) == -1) {
     unaDiv.appendChild(unaForm);
     body.appendChild(unaDiv);
     
-    doc.getElementById("content").value = origPage;
+    doc.getElementById("id_content").value = origPage;
     doc.getElementById("unaForm").submit();
 }
