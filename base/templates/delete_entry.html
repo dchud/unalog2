@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+
+{% block content %}
+
+<h2>Delete entry {{ entry.id }}</h2>
+
+
+<p>
+	From {{ entry.date_created|date:"l, Y-m-d" }}:
+</p>
+
+{% include "entry.html" %}
+
+<p>
+<form action='.' method='post'>
+	Are you sure you want to delete this entry?
+	<input type='submit' name='submit' value='yes'>
+</form>
+</p>
+
+<pre>
+	{{ data }}
+</pre>
+
+
+
+{% endblock %}

@@ -54,23 +54,21 @@ X Tag landing page
   X login/next
   X tags
   X edit
-  delete
+  X delete
   groups
   check for existing entry
 	
-  Bookmarklets 
+X Bookmarklets - decide, do you need more than one?
   
-  Filters
-
   Deal with entry content zip/unzip (save hooks? just a function?)
 
   Index/query
 
   Search result pagination, facets, sort by
 
-  Opensearch
+  Filters
 
-  Item edit/delete 
+  Opensearch
 
   Tag edits
 

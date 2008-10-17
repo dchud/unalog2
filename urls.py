@@ -26,9 +26,11 @@ urlpatterns += patterns('unalog2.base.views',
     url(r'^my/stack/link', 'old_stack_link', name='old-stack-link'),
     url(r'^entry/url/new', 'new_url_entry', name='new-url-entry'),
     url(r'^indexing.js$', 'indexing_js', name='indexing-js'),
-    url(r'^entry/(?P<entry_id>[0-9]+)/edit$', 'edit_url_entry', 
+    url(r'^entry/(?P<entry_id>[0-9]+)/edit/$', 'edit_url_entry', 
         name='edit-url-entry'),
-    
+    url(r'^entry/(?P<entry_id>[0-9]+)/delete/$', 'delete_url_entry', 
+        name='delete-url-entry'),
+
     url(r'^entry/(?P<entry_id>[0-9]+)$', 'url_entry', name='url-entry'),
     
     url(r'^logout/$', 'logout_view', name='logout'),

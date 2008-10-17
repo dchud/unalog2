@@ -15,8 +15,8 @@
 
     <div class='tl-item-links'>
 	{% ifequal entry.user user %}
-        [<a href='/entry/{{ entry.id }}/edit'><span class='bold'>edit</span></a>]
-        [<a href='/entry/{{ entry.id }}/delete'><span class='bold'>delete</span></a>]
+        [<a href='/entry/{{ entry.id }}/edit/'><span class='bold'>edit</span></a>]
+        [<a href='/entry/{{ entry.id }}/delete/'><span class='bold'>delete</span></a>]
 	{% endifequal %}
 
 	{% with entry.tags.count as tag_count %}

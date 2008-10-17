@@ -107,10 +107,32 @@ def new_url_entry(request):
                 new_entry.tags.add(tag)
 
             request.user.message_set.create(message='Saved your entry.')
-            return HttpResponseRedirect('/')
+            return HttpResponseRedirect('/entry/%s/edit' % new_entry.id)
     else:
         form = UrlEntryForm()
     return render_to_response('new_entry.html', {'form': form}, context)
+
+
+@login_required
+def delete_url_entry(request, entry_id):
+    """
+    Let a user choose to delete an entry.
+    """
+    context = RequestContext(request)
+    entry = get_object_or_404(m.Entry, id=entry_id)
+    if entry.user != request.user:
+        request.user.message_set.create(
+            message="You can't go and delete other people's stuff like that, dude.")
+        return HttpRequestRedirect('/')
+    if request.method == 'POST':
+        was_confirmed = request.POST['submit']
+        if was_confirmed == 'yes':
+            entry.delete()
+            message = 'Deleted entry %s' % entry_id
+            request.user.message_set.create(message=message)
+            return HttpResponseRedirect('/')
+    return render_to_response('delete_entry.html', 
+        {'entry': entry}, context)
 
 
 def url_entry(request, entry_id):
