@@ -60,7 +60,8 @@ X Tag landing page
 	
 X Bookmarklets - decide, do you need more than one?
   
-  Deal with entry content zip/unzip (save hooks? just a function?)
+X Deal with entry content zip/unzip (Q: save hooks? just a function?) 
+  A: PSQL TOAST
 
   Index/query
 

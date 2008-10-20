@@ -142,4 +142,3 @@ class Entry (m.Model):
         if public_only:
             qs.filter(is_private=False)
         return qs.count()
-
