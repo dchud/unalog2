@@ -96,3 +96,5 @@ AUTH_PROFILE_MODULE = 'base.userprofile'
 
 LOGIN_URL = '/login'
 LOGIN_REDIRECT_URL = '/'
+
+SOLR_URL = 'http://localhost:8983/solr'
