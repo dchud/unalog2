@@ -63,7 +63,9 @@ X Bookmarklets - decide, do you need more than one?
 X Deal with entry content zip/unzip (Q: save hooks? just a function?) 
   A: PSQL TOAST
 
-  Index/query
+X Index
+
+X Query
 
   Search result pagination, facets, sort by
 
@@ -72,6 +74,8 @@ X Deal with entry content zip/unzip (Q: save hooks? just a function?)
   Opensearch
 
   Tag edits
+
+  Groups - entry, etc.
 
   Reaper 
 

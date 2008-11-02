@@ -56,9 +56,10 @@
             </ul>
                     </td>
                     <td align='right'>
-                        <form class='search' action='/search' method='get'>
+                        <form class='search' action='/search/' method='get'>
                             Search:
-                            <input type='text' name='q' width='10' value='not working yet'/>
+                            <input type='text' name='q' width='10' 
+								{% if q %}value='{{ q }}'{% endif %}/>
                             [<a href='/search'>hints</a>]
                         </form>
                     </td>

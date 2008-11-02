@@ -265,7 +265,6 @@
        fields or fields that need an index-time boost need norms.
    -->
 
-	<!-- BASICS -->
 	<field name="id" type="sint" indexed="true" stored="true" 
 		required="true" />
 	<field name="title" type="text" indexed="true" stored="true"
@@ -274,14 +273,24 @@
 		required="true" />
 	<field name="user" type="string" indexed="true" stored="true"
 		required="true" />
+	<field name="is_private_entry" type="boolean" indexed="true" stored="true"
+		required="true" />
+	<field name="is_private_user" type="boolean" indexed="true" stored="true"
+		required="true" />
+	<field name="is_active_user" type="boolean" indexed="true" stored="true"
+			required="true" />
 	<field name="url" type="string" indexed="true" stored="true"
 		required="true" />
-		
-	<!-- LESS BASIC -->
-	<field name="tag" type="string" indexed="true" stored="true"
-		required="false" multiValued="true" />
 	<field name="comment" type="text" indexed="true" stored="false"
 		required="false" />
+	<field name="date_created" type="date" indexed="true" stored="true"
+		required="true" />
+	<field name="date_modified" type="date" indexed="true" stored="false"
+		required="true" />
+	<field name="tag" type="string" indexed="true" stored="true"
+		required="false" multiValued="true" />
+	<field name="group" type="string" indexed="true" stored="true"
+		required="false" multiValued="true" />
 	<field name="content" type="htmltext" indexed="true" stored="false"
 		required="false" />
 

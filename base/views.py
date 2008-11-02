@@ -12,8 +12,10 @@ from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext, loader
 from django.utils import feedgenerator
 
-from unalog2.base import models as m
+from solr import SolrConnection
 
+from unalog2.base import models as m
+from unalog2.settings import SOLR_URL
 
 class UrlEntryForm(forms.Form):
     url = forms.URLField(required=True, label='URL')
@@ -520,4 +522,30 @@ def group_tag(request, group_name, tag_name='', format='html'):
         'paginator': paginator, 'page': page,
         'browse_type': 'group', 'browse_group': group, 'tag': tag_name,
         'feed_url': '/group/%s/tag/%s/feed/' % (group_name, tag_name),
+        }, context)
+        
+        
+COMMON_FACET_PARAMS = {
+    'facet': 'true',
+    'facet.field': 'tag',
+    'facet.mincount': 2,
+    }        
+
+
+def search(request):
+    """
+    Simple search, queries Solr behind the scenes.
+    """
+    context = RequestContext(request)
+    q = request.GET.get('q', '')
+    if q:
+        s = SolrConnection(settings.SOLR_URL)
+        r = s.query(q, rows=25, **COMMON_FACET_PARAMS)
+        ids = [hit['id'] for hit in r.results]
+        qs = standard_entries()
+        qs = qs.filter(id__in=ids)
+        paginator, page = pagify(request, qs)
+    return render_to_response('index.html', {
+        'q': q,
+        'paginator': paginator, 'page': page,
         }, context)

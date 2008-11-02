@@ -71,4 +71,6 @@ urlpatterns += patterns('unalog2.base.views',
     url(r'^url/(?P<md5sum>[a-f0-9]{32})/$', 'url_all'),
     url(r'^url/(?P<md5sum>[a-f0-9]{32})/feed/$', 'url_all', {'format': 'atom'}),
     
+    # Search
+    url(r'^search/', 'search'),
     )

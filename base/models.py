@@ -1,15 +1,5 @@
 from cStringIO import StringIO
 import hashlib
-import re
-#from xml.etree import cElementTree
-
-# Using effbot's suggestion (see comment from 2007-06-29):
-#
-#   http://effbot.org/zone/element-tidylib.htm
-from elementtidy import TidyHTMLTreeBuilder as tb
-#tb.ElementTree = cElementTree
-from xml.etree.ElementTree import Comment
-
 
 from django.contrib.auth.models import User, Group
 from django.db import connection, models as m
@@ -162,10 +152,16 @@ class Entry (m.Model):
         d = {'id': self.id,
             'user': self.user.username, 
             'user_id': self.user.id,
+            'is_private_entry': self.is_private,
+            'is_private_user': self.user.get_profile().is_private,
+            'is_active_user': self.user.is_active,
             'title': self.title,
             'url': self.url.value,
             'comment': self.comment,
             'content': self.content,
+            'date_created': self.date_created.isoformat() + 'Z',
+            'date_modified': self.date_modified.isoformat() + 'Z',
             'tag': [t.name for t in self.tags.all()],
+            'group': [g.name for g in self.groups.all()],
             }
         return d
