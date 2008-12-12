@@ -68,18 +68,18 @@
             </table>
         </div>
 
-		{% if messages %}
-		<div id='messages'>
-			<ul>
-			{% for message in messages %}
-				<li>{{ message }}</li>
-			{% endfor %}
-			</ul>
-		</div>
-		{% endif %}
-
-
 		<div id='content'>
+
+{% if messages %}
+<div id='messages'>
+	<ul>
+	{% for message in messages %}
+		<li>{{ message }}</li>
+	{% endfor %}
+	</ul>
+</div>
+{% endif %}
+
 {% block content %}
 {% endblock %}
 		</div>

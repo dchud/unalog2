@@ -194,8 +194,9 @@ class Entry (m.Model):
         """
         Override the built-in delete() to delete from solr.
         """
-        super(Entry, self).delete()
-        # Delete from solr
+        # Delete from solr first, or lose your self 
         solr_conn = SolrConnection(settings.SOLR_URL)
-        solr_conn.delete_query('id:[* TO *]')
+        solr_conn.delete_query('id:%s' % self.id)
         solr_conn.commit()
+        super(Entry, self).delete()
+        

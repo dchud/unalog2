@@ -79,17 +79,30 @@ def new_url_entry(request):
             tags_orig = form.cleaned_data['tags']
             comment = form.cleaned_data['comment']
             content = form.cleaned_data['content']
+            submit = request.POST.get('submit', None)
             
+            # Maybe they saved this one before?  Check by url
+            old_entries = m.Entry.objects.filter(user=request.user, 
+                url__value=url_str)
+            if old_entries:
+                # If it's not 'Save anyway', they haven't confirmed yet
+                if not submit == 'Save anyway':
+                    return render_to_response('new_entry.html', {
+                        'form': form,
+                        'old_entries': old_entries,
+                        }, context)
+            
+            # It must be either new, or a duplicate url by choice, so go ahead
             new_entry = m.Entry(user=request.user, title=title, 
                 is_private=is_private,
                 comment=comment, content=content)
 
             url, was_created = m.Url.objects.get_or_create(value=url_str)
             new_entry.url = url
-            
+
             # Save that sucker before adding many-to-manys
             new_entry.save()
-            
+
             tag_strs = tags_orig.split(' ')
             # Remove repeats
             for tag in tag_strs:
@@ -109,6 +122,10 @@ def new_url_entry(request):
                 new_entry.tags.add(tag)
 
             request.user.message_set.create(message='Saved your entry.')
+            # If they had to confirm this, they don't need an edit screen again
+            if submit == 'Save anyway':
+                return HttpResponseRedirect('/')
+            # Otherwise, let them tweak it
             return HttpResponseRedirect('/entry/%s/edit' % new_entry.id)
     else:
         form = UrlEntryForm()

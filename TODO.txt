@@ -56,7 +56,7 @@ X Tag landing page
   X edit
   X delete
   groups
-  check for existing entry
+  X check for existing entry
 	
 X Bookmarklets - decide, do you need more than one?
   
@@ -68,6 +68,8 @@ X Index
 X Query
 
 X Incremental index/update/delete entry in solr
+
+  Preserve tag order?
 
   Search result pagination, facets, sort by
 
