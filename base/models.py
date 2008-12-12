@@ -1,6 +1,9 @@
 from cStringIO import StringIO
 import hashlib
 
+from solr import SolrConnection
+
+from django.conf import settings
 from django.contrib.auth.models import User, Group
 from django.db import connection, models as m
 
@@ -98,13 +101,23 @@ class Url (m.Model):
     value = m.CharField(max_length=500)
     md5sum = m.CharField(max_length=32, db_index=True)
 
+    def __unicode__(self):
+        return '<Url %s: %s>' % (self.id, self.value)
+         
     @property
     def md5(self):
+        """
+        Provide a simple md5 value for lookups/comparisons.
+        """
         return hashlib.md5(self.value).hexdigest()
 
     def save(self, force_insert=False, force_update=False):
+        """
+        Set the md5sum automatically.
+        """
         self.md5sum = self.md5
         super(Url, self).save(force_insert, force_update)
+        
         
         
 class Entry (m.Model):
@@ -165,3 +178,24 @@ class Entry (m.Model):
             'group': [g.name for g in self.groups.all()],
             }
         return d
+
+    def save(self, force_insert=False, force_update=False):
+        """
+        Override the built-in save() to write out to solr.
+        """
+        # Write out the to db
+        super(Entry, self).save(force_insert, force_update)
+        # Write out to solr
+        solr_conn = SolrConnection(settings.SOLR_URL)
+        solr_conn.add(**self.solr_doc)
+        solr_conn.commit()
+        
+    def delete(self):
+        """
+        Override the built-in delete() to delete from solr.
+        """
+        super(Entry, self).delete()
+        # Delete from solr
+        solr_conn = SolrConnection(settings.SOLR_URL)
+        solr_conn.delete_query('id:[* TO *]')
+        solr_conn.commit()

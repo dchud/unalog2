@@ -30,9 +30,9 @@ X Implement by-group views (meh...)
 
 X Implement feeds
 
-KILL Landing page for groups
+KILL Landing page for all groups
 
-KILL Landing page for users
+KILL Landing page for all users
 
 X User tag page
 
@@ -66,6 +66,8 @@ X Deal with entry content zip/unzip (Q: save hooks? just a function?)
 X Index
 
 X Query
+
+X Incremental index/update/delete entry in solr
 
   Search result pagination, facets, sort by
 
