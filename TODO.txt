@@ -71,7 +71,7 @@ X Search result pagination
 
 X Startup "hey there's nothing here!" message.
 
-X Opensearch
+  Opensearch
 
   Filters
 
