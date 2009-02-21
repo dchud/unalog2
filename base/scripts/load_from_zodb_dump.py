@@ -4,7 +4,8 @@ from optparse import OptionParser
 import os
 import traceback
 
-import iso8601
+# Temporary while I'm offline :(
+#import iso8601
 import simplejson as json
 
 from django.contrib.auth.models import User, Group
@@ -67,9 +68,15 @@ def add_group (old={}):
 
 
 def get_iso_date (d):
-    date = iso8601.parse_date(d)
-    date_str = (date + date.utcoffset()).strftime('%Y-%m-%d %H:%M:%S')
-    return date_str
+    # FIXME: commented out while offline and no iso8601
+    #date = iso8601.parse_date(d)
+    #date_str = (date + date.utcoffset()).strftime('%Y-%m-%d %H:%M:%S')
+    #return date_str
+    
+    #print 'ORIG DATE', d 
+    # '2004-03-01T13:10:24-06:00'
+    # Enter a valid date/time in YYYY-MM-DD HH:MM[:ss[.uuuuuu]] format.
+    return d.replace('T', ' ')[:-6]
 
 
 def fix_group_dates (group):

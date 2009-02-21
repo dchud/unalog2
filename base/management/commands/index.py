@@ -42,7 +42,10 @@ class Command(BaseCommand):
         for entry in entries:
             docs.append(entry.solr_doc)
             if len(docs) == MAX_DOCS_PER_ADD:
-                self.solr.add_many(docs)
+                try:
+                    self.solr.add_many(docs)
+                except:
+                    print 'BAD RECORD:', [d['id'] for d in docs]
                 docs = []
                 reset_queries()
         # Don't miss the leftovers

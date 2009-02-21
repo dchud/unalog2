@@ -30,9 +30,9 @@ X Implement by-group views (meh...)
 
 X Implement feeds
 
-KILL Landing page for groups
+KILL Landing page for all groups
 
-KILL Landing page for users
+KILL Landing page for all users
 
 X User tag page
 
@@ -50,7 +50,7 @@ X 404/500
 
 X Tag landing page
 
-  Entry form
+  Entry form  <-- YOU ARE HERE!
   X login/next
   X tags
   X edit
@@ -67,11 +67,13 @@ X Index
 
 X Query
 
-  Search result pagination, facets, sort by
+X Search result pagination
+
+X Startup "hey there's nothing here!" message.
+
+X Opensearch
 
   Filters
-
-  Opensearch
 
   Tag edits
 
@@ -84,6 +86,11 @@ X Query
 
 Next round:
 
+  Search:
+	paging links
+	facets
+	sorting
+	
   Registration
 
   Implement openid

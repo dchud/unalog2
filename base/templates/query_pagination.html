@@ -1,0 +1,13 @@
+{% block pagination %}
+<ul id='pagination'>
+
+    {% if page.has_previous %}
+    <li><a href='{{ request.path }}?{{ query_param }}p={{ page.previous_page_number }}'>Previous</a></li>
+    {% endif %}
+
+	{% if page.has_next %}
+    <li><a href='{{ request.path }}?{{ query_param }}p={{ page.next_page_number }}'>More</a></li>
+	{% endif %}
+
+</ul>
+{% endblock %}
