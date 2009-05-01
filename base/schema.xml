@@ -233,8 +233,6 @@
 		required="false" />
 	<field name="date_created" type="date" indexed="true" stored="true"
 		required="true" />
-	<field name="date_modified" type="date" indexed="true" stored="false"
-		required="true" />
 	<field name="tag" type="string" indexed="true" stored="true"
 		required="false" multiValued="true" />
 	<field name="group" type="string" indexed="true" stored="true"

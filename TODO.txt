@@ -55,7 +55,6 @@ X Tag landing page
   X tags
   X edit
   X delete
-  groups
   X check for existing entry
 	
 X Bookmarklets - decide, do you need more than one?
@@ -73,9 +72,13 @@ X Incremental index/update/delete entry in solr
 
   Search result pagination, facets, sort by
 
-  Filters
-
   Opensearch
+
+  Privacy
+
+  Inactive users 
+
+  Filters
 
   Tag edits
 
@@ -84,6 +87,7 @@ X Incremental index/update/delete entry in solr
   Reaper 
 
   -- functionally complete --
+
 
 
 Next round:

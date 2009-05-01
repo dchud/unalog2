@@ -54,7 +54,7 @@
 	
 	   	<h2 class='timeline-daysep'>{{ date_group.grouper|date:"l, Y-m-d" }}</h2>
 
-		{% for entry in date_group.list %}
+		{% for entry in date_group.list|dictsortreversed:"date_created.time" %}
 			{% include "entry.html" %}
 		{% endfor %}       
 
@@ -68,7 +68,7 @@
 	
 
 	    <p>
-	    Filtered 1 entry.  [<a href='http://unalog.com/my/filter'>Edit filters</a>]
+	    ADD FILTERING.
 	    </p>
 
 {% endif %}

@@ -1,5 +1,3 @@
-import re
-
 from django.conf import settings
 from django.contrib.auth import authenticate, logout
 from django.contrib.auth.decorators import login_required
@@ -38,11 +36,11 @@ def standard_entries():
     return qs
 
 
-def pagify(request, qs):
+def pagify(request, qs, num_items=50):
     """
     Convenience helper to paginate out a query set.
     """
-    paginator = Paginator(qs, 50)
+    paginator = Paginator(qs, num_items)
     try:
         page_num = int(request.GET.get('p', '1'))
         if page_num not in paginator.page_range:
@@ -59,9 +57,6 @@ def old_stack_link(request):
     """
     return HttpResponseRedirect('/entry/url/new')
     
-
-BAD_CHARS = """ ~`@#$%^&*()?\/,<>;\"'"""
-RE_BAD_CHARS = re.compile(r'[%s]' % BAD_CHARS)
 
 @login_required
 def new_url_entry(request):
@@ -99,27 +94,12 @@ def new_url_entry(request):
 
             url, was_created = m.Url.objects.get_or_create(value=url_str)
             new_entry.url = url
-
+            
             # Save that sucker before adding many-to-manys
             new_entry.save()
 
             tag_strs = tags_orig.split(' ')
-            # Remove repeats
-            for tag in tag_strs:
-                while tag_strs.count(tag) > 1:
-                    tag_strs.remove(tag)
-            # Remove empty tags like ''
-            tag_strs = [tag for tag in tag_strs if not tag == '']
-            # Remove bad tags, for bad chars or too lengthy
-            for tag_str in tag_strs:
-                if RE_BAD_CHARS.search(tag_str):
-                    tag_strs.remove(tag_str)
-                elif len(tag_str) > 30:
-                    tag_strs.remove(tag_str)
-            # Build up and add real tag objects
-            for tag_str in tag_strs:
-                tag, was_created = m.Tag.objects.get_or_create(name=tag_str)
-                new_entry.tags.add(tag)
+            new_entry.add_tags(tag_strs)
 
             request.user.message_set.create(message='Saved your entry.')
             # If they had to confirm this, they don't need an edit screen again
@@ -187,26 +167,10 @@ def edit_url_entry(request, entry_id):
             entry.url = url
             
             # Remove original tags
-            for tag in entry.tags.all():
-                entry.tags.remove(tag)
+            m.EntryTag.objects.filter(entry=entry).delete()
             
             tag_strs = tags_orig.split(' ')
-            # Remove repeats
-            for tag in tag_strs:
-                while tag_strs.count(tag) > 1:
-                    tag_strs.remove(tag)
-            # Remove empty tags like ''
-            tag_strs = [tag for tag in tag_strs if not tag == '']
-            # Remove bad tags, for bad chars or too lengthy
-            for tag_str in tag_strs:
-                if RE_BAD_CHARS.search(tag_str):
-                    tag_strs.remove(tag_str)
-                elif len(tag_str) > 30:
-                    tag_strs.remove(tag_str)
-            # Build up and add real tag objects
-            for tag_str in tag_strs:
-                tag, was_created = m.Tag.objects.get_or_create(name=tag_str)
-                entry.tags.add(tag)
+            entry.add_tags(tag_strs)
 
             entry.save()
 
@@ -219,7 +183,7 @@ def edit_url_entry(request, entry_id):
             'title': entry.title,
             'comment': entry.comment,
             'content': entry.content,
-            'tags': ' '.join([t.name for t in entry.tags.all()]),
+            'tags': ' '.join([et.tag.name for et in entry.tag_set.all()]),
             'is_private': entry.is_private,
             }
         form = UrlEntryForm(data)
@@ -300,7 +264,7 @@ def tag(request, tag_name, format='html'):
     """
     context = RequestContext(request)
     qs = standard_entries()
-    qs = qs.filter(tags__name=tag_name)
+    qs = qs.filter(tag_set__tag__name=tag_name)
     paginator, page = pagify(request, qs)
     if format == 'atom':
         return atom_feed(page=page, title='latest from everybody for tag "%s"' % tag_name,
@@ -317,9 +281,9 @@ def tags_all(request):
     Summary page for overall tag usage.
     """
     context = RequestContext(request)
-    qs_count = m.Tag.count()
+    qs_count = m.EntryTag.count()
     count_paginator, count_page = pagify(request, qs_count)
-    qs_alpha = m.Tag.count(order='alpha')
+    qs_alpha = m.EntryTag.count(order='alpha')
     alpha_paginator, alpha_page = pagify(request, qs_alpha)
     return render_to_response('tags.html', {
         'view_hidden': False,
@@ -397,7 +361,7 @@ def user_tag(request, user_name, tag_name='', format='html'):
             'message': message,
             }, context)
 
-    qs = m.Entry.objects.filter(user=user, tags__name=tag_name)
+    qs = m.Entry.objects.filter(user=user, tag_set__tag__name=tag_name)
     # Hide public entry_user's private stuff unless it's the user themself
     if user != request.user:
         qs = qs.exclude(is_private=True)
@@ -431,13 +395,16 @@ def user_tags(request, user_name):
             'message': message,
             }, context)
     
-    qs = m.Tag.count(user=user, request_user=request.user)
-    paginator, page = pagify(request, qs)
+    qs = m.EntryTag.count(user=user, request_user=request.user)
+    paginator, page = pagify(request, qs, num_items=250)
+    qs_alpha = m.EntryTag.count(order='alpha')
+    alpha_paginator, alpha_page = pagify(request, qs_alpha, num_items=250)
     
     return render_to_response('tags.html', {
         'view_hidden': False,
         'title': "user %s's tags" % user_name,
         'paginator': paginator, 'page': page,
+        'alpha_paginator': alpha_paginator, 'alpha_page': alpha_page,
         'browse_user': user,
         }, context)
 
@@ -523,7 +490,7 @@ def group_tag(request, group_name, tag_name='', format='html'):
             'message': message,
             }, context)
     
-    qs = m.Entry.objects.filter(groups__name=group_name, tags__name=tag_name)
+    qs = m.Entry.objects.filter(groups__name=group_name, tag_set__tag__name=tag_name)
     qs = qs.order_by('-date_created')
     # If they're not a member, don't let them see private stuff
     if not request.user in group.user_set.all():
