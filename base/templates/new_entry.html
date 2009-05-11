@@ -2,7 +2,20 @@
 
 {% block content %}
 
+{% if old_entries %}
+<h2>Hey!  You've saved this before.</h2>
+	{% regroup old_entries by date_created.date as date_groups %}
+	{% for date_group in date_groups %}
+	   	<h2 class='timeline-daysep'>{{ date_group.grouper|date:"l, Y-m-d" }}</h2>
+		{% for entry in date_group.list %}
+			{% include "entry.html" %}
+		{% endfor %}       
+	{% endfor %}
+<h2>Save it again if you like.</h2>
+{% else %}
 <h2>Add a link</h2>
+{% endif %}
+
 
 <p>
 Don't use <acronym title='Hypertext Markup Language'>HTML</acronym>; 
@@ -19,11 +32,11 @@ and other members of private groups to which they are added.
 		<tbody>
 			<tr>
 				<th valign='top'><label for="id_url">URL:</label></th>
-				<td><input type="text" name="url" size="80" value="{{ form.url }}" id="id_url" /></td>
+				<td><input type="text" name="url" size="80" value="{{ form.data.url }}" id="id_url" /></td>
 			</tr>
 			<tr>
 				<th valign='top'><label for="id_title">Title:</label></th>
-				<td><input type="text" name="title" size="80" value="{{ title }}" id="id_title" /></td>
+				<td><input type="text" name="title" size="80" value="{{ form.data.title }}" id="id_title" /></td>
 			</tr>
 			<tr>
 				<th valign='top'><label for="id_tags">Tags:</label></th>
@@ -43,7 +56,7 @@ and other members of private groups to which they are added.
 			</tr>
 			<tr>
 				<td></td>
-				<td><input name='submit' type='submit' value='save' /></td>
+				<td><input name='submit' type='submit' value='Save anyway' /></td>
 			</tr>
 		</tbody>
 	</table>

@@ -55,8 +55,7 @@ X Tag landing page
   X tags
   X edit
   X delete
-  groups
-  check for existing entry
+  X check for existing entry
 	
 X Bookmarklets - decide, do you need more than one?
   
@@ -71,7 +70,15 @@ X Search result pagination
 
 X Startup "hey there's nothing here!" message.
 
+X Incremental index/update/delete entry in solr
+
   Opensearch
+
+  Preserve tag order?
+
+  Privacy
+
+  Inactive users 
 
   Filters
 
@@ -82,6 +89,7 @@ X Startup "hey there's nothing here!" message.
   Reaper 
 
   -- functionally complete --
+
 
 
 Next round:

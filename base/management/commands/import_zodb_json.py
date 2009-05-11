@@ -1,16 +1,22 @@
 #!/usr/bin/env python2.5
 
+import optparse
 from optparse import OptionParser
 import os
+import os.path
 import traceback
 
 import iso8601
 import simplejson as json
 
+from django.core.management.base import BaseCommand, CommandError
 from django.contrib.auth.models import User, Group
 from django.db import connection
 
+from solr import SolrConnection, UTC, utc_from_string
+
 from unalog2.base import models as m
+from unalog2.settings import SOLR_URL
 
 
 
@@ -68,9 +74,13 @@ def add_group (old={}):
 
 def get_iso_date (d):
     date = iso8601.parse_date(d)
-    date_str = (date + date.utcoffset()).strftime('%Y-%m-%d %H:%M:%S')
-    return date_str
+    return date.astimezone(UTC())
     
+def solr_date_string (d):
+    return d.strftime('%Y-%m-%dT%H:%M:%SZ')
+
+def date_string (d):
+    return d.strftime('%Y-%m-%d %H:%M:%S')
 
 def fix_group_dates (group):
     try:
@@ -88,22 +98,22 @@ def add_entry (old={}):
     pass
 
 
-def main (options, args):
+def main (options):
     cursor = connection.cursor()
-    
-    print 'Loading data from %s' % options.directory
+    datadump_dir = options['directory']
+    print 'Loading data from %s' % datadump_dir
     print 'Loading groups'
-    old_groups = json.load(open('%s/group.json' % options.directory))
+    old_groups = json.load(open('%s/group.json' % datadump_dir))
     print 'Found %s groups' % len(old_groups)
     for old_group_name, old_group in old_groups.items():
         new_group = add_group(old_group)
         print 'Saved new group %s from old group %s' % (new_group.id, new_group.name)
     
-    for user_json in os.listdir('%s/users' % options.directory):
+    for user_json in os.listdir('%s/users' % datadump_dir):
         if not user_json.endswith('.json'):
             continue
         print 'Loading %s' % user_json[:-5]
-        old_user = json.load(open('%s/users/%s' % (options.directory, user_json)))
+        old_user = json.load(open('%s/users/%s' % (datadump_dir, user_json)))
         new_user = add_user(old_user)
         print 'Saved new user %s from old user %s' % \
             (new_user.id, new_user.username)
@@ -136,26 +146,32 @@ def main (options, args):
                 print 'Unable to copy over url:', url
                 print traceback.print_exc()
             e.is_private = bool(e_dict.get('is_private', False)) or False
-            e.save()
+
+            date = get_iso_date(e_dict['date'])
+            date_str = date_string(date)
+            e.date_created = date_str
+            e.save(solr_index=False)
+
             # groups
             for g in e_dict.get('groups', []):
                 e.groups.add(m.Group.objects.get(name=g))
+
             # tags
-            for t in e_dict.get('tags', []):
-                tag, created = m.Tag.objects.get_or_create(name=t)
-                e.tags.add(tag)
-            date_str = get_iso_date(e_dict['date'])
-            e.date_created = date_str
-            e.save()
+            tags = e_dict.get('tags', [])
+            e.add_tags(tags)
+            
             # Note: date_modified will always self-update after API updates
             # so drop down to db
             #clean_date_str = e.date_created.isoformat().replace('T', ' ')
             cursor.execute("""
                 UPDATE base_entry 
-                SET date_modified='%s' 
+                SET date_created='%s', date_modified='%s' 
                 WHERE id=%s
-                """ % (date_str, e.id))
-                
+                """ % (date_str, date_str, e.id))
+
+            if options['index']:
+                e.solr_index()
+            
         # A lovely little cheat
         new_user.date_joined = new_user.entries.iterator().next().date_created
         new_user.save()
@@ -167,23 +183,28 @@ def main (options, args):
 
 
 
-if __name__ == '__main__':
-    parser = OptionParser()
-    parser.add_option('-d', '--directory', dest='directory',
-        help='Directory containing zodb json dump', default='datadump')
-    parser.add_option('-r', '--reset', dest='reset',
-        action='store_true', default=False,
+class Command(BaseCommand):
+    directory_option = optparse.make_option('--dir',
+        action='store', dest='directory', default='datadump',
+        help='json datadump directory')
+    reset_option = optparse.make_option('--reset', 
+        action='store_true', dest='reset', default=False,
         help='Reset (empty) data in tables before starting')
-    options, args = parser.parse_args()
+    index_option = optparse.make_option('--index',
+        action='store_true', dest='index', default=False,
+        help='Index imported entries in Solr')
+    option_list = BaseCommand.option_list + (directory_option, reset_option,
+        index_option)
+    help = 'import a directory of json data from a zodb dump'
+
+    def handle(self, **options):
+        if options['reset']:
+            print 'Resetting tables'
+            print 'Deleting all Users'
+            for u in User.objects.exclude(id=1):
+                u.delete()
+            print 'Deleting all Groups'
+            for g in Group.objects.all():
+                g.delete()
     
-    if options.reset:
-        print 'Resetting tables'
-        print 'Deleting all Users'
-        for u in User.objects.exclude(id=1):
-            u.delete()
-        print 'Deleting all Groups'
-        for g in Group.objects.all():
-            g.delete()
-    
-    
-    main(options, args)
+        main(options)

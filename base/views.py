@@ -65,9 +65,6 @@ def old_stack_link(request):
     return HttpResponseRedirect('/entry/url/new')
     
 
-BAD_CHARS = """ ~`@#$%^&*()?\/,<>;\"'"""
-RE_BAD_CHARS = re.compile(r'[%s]' % BAD_CHARS)
-
 @login_required
 def new_url_entry(request):
     """
@@ -84,7 +81,20 @@ def new_url_entry(request):
             tags_orig = form.cleaned_data['tags']
             comment = form.cleaned_data['comment']
             content = form.cleaned_data['content']
+            submit = request.POST.get('submit', None)
             
+            # Maybe they saved this one before?  Check by url
+            old_entries = m.Entry.objects.filter(user=request.user, 
+                url__value=url_str)
+            if old_entries:
+                # If it's not 'Save anyway', they haven't confirmed yet
+                if not submit == 'Save anyway':
+                    return render_to_response('new_entry.html', {
+                        'form': form,
+                        'old_entries': old_entries,
+                        }, context)
+            
+            # It must be either new, or a duplicate url by choice, so go ahead
             new_entry = m.Entry(user=request.user, title=title, 
                 is_private=is_private,
                 comment=comment, content=content)
@@ -94,26 +104,15 @@ def new_url_entry(request):
             
             # Save that sucker before adding many-to-manys
             new_entry.save()
-            
+
             tag_strs = tags_orig.split(' ')
-            # Remove repeats
-            for tag in tag_strs:
-                while tag_strs.count(tag) > 1:
-                    tag_strs.remove(tag)
-            # Remove empty tags like ''
-            tag_strs = [tag for tag in tag_strs if not tag == '']
-            # Remove bad tags, for bad chars or too lengthy
-            for tag_str in tag_strs:
-                if RE_BAD_CHARS.search(tag_str):
-                    tag_strs.remove(tag_str)
-                elif len(tag_str) > 30:
-                    tag_strs.remove(tag_str)
-            # Build up and add real tag objects
-            for tag_str in tag_strs:
-                tag, was_created = m.Tag.objects.get_or_create(name=tag_str)
-                new_entry.tags.add(tag)
+            new_entry.add_tags(tag_strs)
 
             request.user.message_set.create(message='Saved your entry.')
+            # If they had to confirm this, they don't need an edit screen again
+            if submit == 'Save anyway':
+                return HttpResponseRedirect('/')
+            # Otherwise, let them tweak it
             return HttpResponseRedirect('/entry/%s/edit' % new_entry.id)
     else:
         form = UrlEntryForm()
@@ -175,26 +174,10 @@ def edit_url_entry(request, entry_id):
             entry.url = url
             
             # Remove original tags
-            for tag in entry.tags.all():
-                entry.tags.remove(tag)
+            m.EntryTag.objects.filter(entry=entry).delete()
             
             tag_strs = tags_orig.split(' ')
-            # Remove repeats
-            for tag in tag_strs:
-                while tag_strs.count(tag) > 1:
-                    tag_strs.remove(tag)
-            # Remove empty tags like ''
-            tag_strs = [tag for tag in tag_strs if not tag == '']
-            # Remove bad tags, for bad chars or too lengthy
-            for tag_str in tag_strs:
-                if RE_BAD_CHARS.search(tag_str):
-                    tag_strs.remove(tag_str)
-                elif len(tag_str) > 30:
-                    tag_strs.remove(tag_str)
-            # Build up and add real tag objects
-            for tag_str in tag_strs:
-                tag, was_created = m.Tag.objects.get_or_create(name=tag_str)
-                entry.tags.add(tag)
+            entry.add_tags(tag_strs)
 
             entry.save()
 
@@ -207,7 +190,7 @@ def edit_url_entry(request, entry_id):
             'title': entry.title,
             'comment': entry.comment,
             'content': entry.content,
-            'tags': ' '.join([t.name for t in entry.tags.all()]),
+            'tags': ' '.join([et.tag.name for et in entry.tag_set.all()]),
             'is_private': entry.is_private,
             }
         form = UrlEntryForm(data)
@@ -288,7 +271,7 @@ def tag(request, tag_name, format='html'):
     """
     context = RequestContext(request)
     qs = standard_entries()
-    qs = qs.filter(tags__name=tag_name)
+    qs = qs.filter(tag_set__tag__name=tag_name)
     paginator, page = pagify(request, qs)
     if format == 'atom':
         return atom_feed(page=page, title='latest from everybody for tag "%s"' % tag_name,
@@ -305,9 +288,9 @@ def tags_all(request):
     Summary page for overall tag usage.
     """
     context = RequestContext(request)
-    qs_count = m.Tag.count()
+    qs_count = m.EntryTag.count()
     count_paginator, count_page = pagify(request, qs_count)
-    qs_alpha = m.Tag.count(order='alpha')
+    qs_alpha = m.EntryTag.count(order='alpha')
     alpha_paginator, alpha_page = pagify(request, qs_alpha)
     return render_to_response('tags.html', {
         'view_hidden': False,
@@ -385,7 +368,7 @@ def user_tag(request, user_name, tag_name='', format='html'):
             'message': message,
             }, context)
 
-    qs = m.Entry.objects.filter(user=user, tags__name=tag_name)
+    qs = m.Entry.objects.filter(user=user, tag_set__tag__name=tag_name)
     # Hide public entry_user's private stuff unless it's the user themself
     if user != request.user:
         qs = qs.exclude(is_private=True)
@@ -419,13 +402,16 @@ def user_tags(request, user_name):
             'message': message,
             }, context)
     
-    qs = m.Tag.count(user=user, request_user=request.user)
-    paginator, page = pagify(request, qs)
+    qs = m.EntryTag.count(user=user, request_user=request.user)
+    paginator, page = pagify(request, qs, num_items=250)
+    qs_alpha = m.EntryTag.count(order='alpha')
+    alpha_paginator, alpha_page = pagify(request, qs_alpha, num_items=250)
     
     return render_to_response('tags.html', {
         'view_hidden': False,
         'title': "user %s's tags" % user_name,
         'paginator': paginator, 'page': page,
+        'alpha_paginator': alpha_paginator, 'alpha_page': alpha_page,
         'browse_user': user,
         }, context)
 
@@ -511,7 +497,7 @@ def group_tag(request, group_name, tag_name='', format='html'):
             'message': message,
             }, context)
     
-    qs = m.Entry.objects.filter(groups__name=group_name, tags__name=tag_name)
+    qs = m.Entry.objects.filter(groups__name=group_name, tag_set__tag__name=tag_name)
     qs = qs.order_by('-date_created')
     # If they're not a member, don't let them see private stuff
     if not request.user in group.user_set.all():

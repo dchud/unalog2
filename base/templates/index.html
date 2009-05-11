@@ -53,18 +53,16 @@
 
 	{% if page.object_list %}
 
-		<div id='entryset'>
+            <div id='entryset'>
 
 		{% regroup page.object_list by date_created.date as date_groups %}
 		{% for date_group in date_groups %}
 	
-		   	<h2 class='timeline-daysep'>{{ date_group.grouper|date:"l, Y-m-d" }}</h2>
+                    {% for entry in date_group.list|dictsortreversed:"date_created.time" %}
+			{% include "entry.html" %}
+                    {% endfor %}       
 
-			{% for entry in date_group.list %}
-				{% include "entry.html" %}
-			{% endfor %}       
-
-		{% endfor %}
+                {% endfor %}
 
 	    </div>
 
@@ -88,7 +86,7 @@
 	
 
 	    <p>
-	    Filtered 1 entry.  [<a href='http://unalog.com/my/filter'>Edit filters</a>]
+	    ADD FILTERING.
 	    </p>
 
 {% endif %}
