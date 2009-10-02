@@ -74,7 +74,7 @@ X Incremental index/update/delete entry in solr
 
   Opensearch
 
-  Preserve tag order?
+X Preserve tag order?
 
   Privacy
 
@@ -88,6 +88,8 @@ X Incremental index/update/delete entry in solr
 
   Reaper 
 
+  Update for Django 1.1
+
   -- functionally complete --
 
 
@@ -97,7 +99,7 @@ Next round:
   Search:
 	paging links
 	facets
-	sorting
+  X sorting
 	
   Registration
 

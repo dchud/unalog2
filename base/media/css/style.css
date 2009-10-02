@@ -421,6 +421,7 @@ a.tl-item:hover {
     display: block;
     margin-left: 1.3em;
     font-size: 80%;
+    font-weight: normal;
 }
 
 .tl-item-icon {

@@ -66,9 +66,9 @@ class Tag (m.Model):
 
 
 class EntryTag (m.Model):
-    entry = m.ForeignKey('Entry', related_name='tag_set', db_index=True)
-    tag = m.ForeignKey(Tag, related_name='entry_set', db_index=True)
-    sequence_num = m.SmallIntegerField(default=0)
+    entry = m.ForeignKey('Entry', related_name='tags', db_index=True)
+    tag = m.ForeignKey(Tag, related_name='entries', db_index=True)
+    sequence_num = m.SmallIntegerField(default=0, db_index=True)
     
     class Meta:
         unique_together = ['entry', 'tag', 'sequence_num']
@@ -226,7 +226,7 @@ class Entry (m.Model):
             'content': self.content,
             'date_created': date_created,
             #'date_modified': self.date_modified,
-            'tag': [entry_tag.tag.name for entry_tag in self.tag_set.all()],
+            'tag': [entry_tag.tag.name for entry_tag in self.tags.all()],
             'group': [g.name for g in self.groups.all()],
             }
         return d

@@ -198,13 +198,19 @@ class Command(BaseCommand):
     help = 'import a directory of json data from a zodb dump'
 
     def handle(self, **options):
+        cursor = connection.cursor()
         if options['reset']:
             print 'Resetting tables'
+            print 'Deleting all Tags'
+            cursor.execute("DELETE FROM base_entry_tags")
             print 'Deleting all Users'
             for u in User.objects.exclude(id=1):
                 u.delete()
+            cursor.execute("DELETE FROM auth_user")
+            cursor.execute("DELETE FROM auth_user")
             print 'Deleting all Groups'
             for g in Group.objects.all():
                 g.delete()
+            
     
         main(options)

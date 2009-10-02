@@ -36,6 +36,9 @@ class EntryAdmin(admin.ModelAdmin):
     list_filter = ['date_created', 'etype', 'is_private']
     search_fields = ['id', 'title']
 
+class EntryTagAdmin(admin.ModelAdmin):
+    list_display = ['id', 'entry', 'tag', 'sequence_num']
+    search_fields = ['tag']
 
 
 admin.site.register(m.GroupProfile, GroupProfileAdmin)
@@ -44,3 +47,4 @@ admin.site.register(m.Filter, FilterAdmin)
 admin.site.register(m.Tag, TagAdmin)
 admin.site.register(m.Url, UrlAdmin)
 admin.site.register(m.Entry, EntryAdmin)
+admin.site.register(m.EntryTag, EntryTagAdmin)

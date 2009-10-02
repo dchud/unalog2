@@ -19,9 +19,9 @@
         [<a href='/entry/{{ entry.id }}/delete/'><span class='bold'>delete</span></a>]
 	{% endifequal %}
 
-	{% with entry.tag_set.count as tag_count %}
+	{% with entry.tags.count as tag_count %}
 		{% ifnotequal tag_count 0 %}
-			{% with entry.tag_set.all as entry_tags %}
+			{% with entry.tags.all as entry_tags %}
             with tag{{ tag_count|pluralize }}
     			{% for entry_tag in entry_tags %}
         <a class='tag' rel='tag' href='/user/{{ entry.user.username }}/tag/{{ entry_tag.tag.name }}/'>{{ entry_tag.tag.name }}</a>

@@ -12,9 +12,9 @@
 	
 {% else %}
 
-	{% if title %}
+	{% ifnotequal title "home" %}
 	<h2>{{ title }}</h2>
-	{% endif %}
+	{% endifnotequal %}
 
 	{% ifequal browse_type "user" %}
 	<h2><a href='/user/{{ browse_user_name }}/'>{{ browse_user_name }}</a> 
@@ -53,18 +53,20 @@
 
 	{% if page.object_list %}
 
-            <div id='entryset'>
+    <div id='entryset'>
 
-		{% regroup page.object_list by date_created.date as date_groups %}
+		{% regroup page.object_list|dictsortreversed:"date_created" by date_created.date as date_groups %}
 		{% for date_group in date_groups %}
-	
-                    {% for entry in date_group.list|dictsortreversed:"date_created.time" %}
-			{% include "entry.html" %}
-                    {% endfor %}       
+		
+			<h2>{{ date_group.grouper|date:"l, Y-m-d" }}<h2>
+			
+	        {% for entry in date_group.list|dictsortreversed:"date_created.time" %}
+				{% include "entry.html" %}
+            {% endfor %}       
 
-                {% endfor %}
+        {% endfor %}
 
-	    </div>
+    </div>
 
 	{% else %}
 

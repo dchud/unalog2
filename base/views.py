@@ -271,7 +271,7 @@ def tag(request, tag_name, format='html'):
     """
     context = RequestContext(request)
     qs = standard_entries()
-    qs = qs.filter(tag_set__tag__name=tag_name)
+    qs = qs.filter(tags__tag__name=tag_name)
     paginator, page = pagify(request, qs)
     if format == 'atom':
         return atom_feed(page=page, title='latest from everybody for tag "%s"' % tag_name,
@@ -368,7 +368,7 @@ def user_tag(request, user_name, tag_name='', format='html'):
             'message': message,
             }, context)
 
-    qs = m.Entry.objects.filter(user=user, tag_set__tag__name=tag_name)
+    qs = m.Entry.objects.filter(user=user, tags__tag__name=tag_name)
     # Hide public entry_user's private stuff unless it's the user themself
     if user != request.user:
         qs = qs.exclude(is_private=True)
@@ -635,7 +635,8 @@ def search(request):
     q = request.GET.get('q', '')
     if q:
         s = SolrConnection(settings.SOLR_URL)
-        r = s.query(q, rows=25, **COMMON_FACET_PARAMS)
+        r = s.query(q, rows=25, sort='date_created', sort_order='asc',
+            **COMMON_FACET_PARAMS)
         paginator = SolrPaginator(q, r)
         try:
             page = get_page(request, paginator)
