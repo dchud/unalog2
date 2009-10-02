@@ -49,11 +49,15 @@ def get_page(request, paginator):
     return paginator.page(page_num)
     
 
-def pagify(request, qs):
+def pagify(request, qs, num_items=50):
     """
     Convenience helper to paginate out a query set.
     """
-    paginator = Paginator(qs, 50)
+    try:
+        num_items = int(num_items)
+    except:
+        num_items = 50
+    paginator = Paginator(qs, num_items)
     page = get_page(request, paginator)
     return paginator, page
 
@@ -190,7 +194,7 @@ def edit_url_entry(request, entry_id):
             'title': entry.title,
             'comment': entry.comment,
             'content': entry.content,
-            'tags': ' '.join([et.tag.name for et in entry.tag_set.all()]),
+            'tags': ' '.join([et.tag.name for et in entry.tags.all()]),
             'is_private': entry.is_private,
             }
         form = UrlEntryForm(data)
@@ -497,7 +501,7 @@ def group_tag(request, group_name, tag_name='', format='html'):
             'message': message,
             }, context)
     
-    qs = m.Entry.objects.filter(groups__name=group_name, tag_set__tag__name=tag_name)
+    qs = m.Entry.objects.filter(groups__name=group_name, tags__tag__name=tag_name)
     qs = qs.order_by('-date_created')
     # If they're not a member, don't let them see private stuff
     if not request.user in group.user_set.all():

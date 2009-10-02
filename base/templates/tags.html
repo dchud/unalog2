@@ -36,7 +36,11 @@
 	{% for count, name in alpha_page.object_list %}
 		<tr>
 			<th valign='top'>{{ count }}</th>
+			{% if browse_user %}
+			<td class='coll1' valign='top'><a rel='tag' href='/user/{{ browse_user.username }}/tag/{{ name }}/'>{{ name }}</a></td>
+			{% else %}
 			<td class='coll1' valign='top'><a rel='tag' href='/tag/{{ name }}/'>{{ name }}</a></td>
+			{% endif %}
 		</tr>
 	{% endfor %}
 	</tbody>
