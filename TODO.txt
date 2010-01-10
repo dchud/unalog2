@@ -90,6 +90,8 @@ X Preserve tag order?
 
   Update for Django 1.1
 
+  Update for Solr 1.4
+
   -- functionally complete --
 
 

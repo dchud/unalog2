@@ -140,13 +140,6 @@ class Url (m.Model):
         
         
 class Entry (m.Model):
-    ENTRY_TYPE_CHOICES = [
-        ('l', 'Web link'),
-        ]
-        
-    # Default to 'web link' just to save a step
-    etype = m.CharField(max_length=1, choices=ENTRY_TYPE_CHOICES,
-        default=ENTRY_TYPE_CHOICES[0][0], db_index=True)
     user = m.ForeignKey(User, related_name='entries')
     title = m.TextField()
     url = m.ForeignKey(Url, related_name='entries')
@@ -239,6 +232,14 @@ class Entry (m.Model):
         solr_conn.add(**self.solr_doc)
         solr_conn.commit()
 
+    def solr_delete(self):
+        """
+        Remove from solr index
+        """
+        solr_conn = SolrConnection(settings.SOLR_URL)
+        solr_conn.delete_query('id:%s' % self.id)
+        solr_conn.commit()
+        
     def save(self, force_insert=False, force_update=False, solr_index=True):
         """
         Override the built-in save() to write out to solr.
@@ -248,19 +249,10 @@ class Entry (m.Model):
         if solr_index:
             self.solr_index
 
-    def solr_delete(self):
-        """
-        Remove from solr index
-        """
-        solr_conn = SolrConnection(settings.SOLR_URL)
-        solr_conn.delete_query('id:%s' % self.id)
-        solr_conn.commit()
-        
     def delete(self, solr_delete=True):
         """
         Override the built-in delete() to delete from solr.
         """
-        
         # Delete from solr first, or lose your self 
         if solr_delete:
             self.solr_delete()
