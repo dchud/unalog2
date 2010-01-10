@@ -202,7 +202,7 @@ class Command(BaseCommand):
         if options['reset']:
             print 'Resetting tables'
             print 'Deleting all Tags'
-            cursor.execute("DELETE FROM base_entry_tags")
+            cursor.execute("DELETE FROM base_entrytag")
             print 'Deleting all Users'
             for u in User.objects.exclude(id=1):
                 u.delete()

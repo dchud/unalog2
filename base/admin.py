@@ -31,9 +31,8 @@ class UrlAdmin(admin.ModelAdmin):
     search_fields = ['value']
     
 class EntryAdmin(admin.ModelAdmin):
-    list_display = ['id', 'user', 'etype', 'title', 'is_private', 
-        'date_created']
-    list_filter = ['date_created', 'etype', 'is_private']
+    list_display = ['id', 'user', 'title', 'is_private', 'date_created']
+    list_filter = ['date_created', 'is_private']
     search_fields = ['id', 'title']
 
 class EntryTagAdmin(admin.ModelAdmin):

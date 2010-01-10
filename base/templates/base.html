@@ -4,7 +4,6 @@
 
 {% include "header.html" %}
     
-
     <body id='top'>
     
         <div id='contentwrapper'>
@@ -18,25 +17,28 @@
                     <td style='color:#eee;' align='right' valign='bottom'>
     
 						{% if user.is_authenticated %}
-                        logged in as: 
-                        <span class='bold'>{{ user.username }}</span>
-                        [<a href='/my/'>my</a>]
-                        [<a href='/user/{{ user.username }}/'>entries</a>]
-                        [<a href='/user/{{ user.username }}/tags/'>tags</a>]
-                        [<a href='/my/group/'>groups</a>]
-                        [<a href='/my/filter/'>filters</a>]
-                        [<a href='/my/prefs'>prefs</a>]
+                        	logged in as: 
+	                        <span class='bold'><a href='{% url user user.username %}'>{{ user.username }}</span>
+	                        [<a href='{% url user_tags user.username %}'>tags</a>]
+							[<a href='{% url bookmarklet %}'>bookmarklet</a>]
 							{% if user.is_staff %}
-                        [<a href='/admin'>admin</a>]
-            				{% endif %}
-                        [<a href='/logout/'><span class='bold'>logout</span</a>]
+	                        [<a href='/admin/'>admin</a>]
+	           				{% endif %}
+	                        [<a href='{% url logout %}'>logout</a>]
+
+							- 
+							[my<!--[<a href='/my/'>my</a>]-->]
+	                        [groups<!--[<a href='/my/group/'>groups</a>]-->]
+	                        [filters<!--<a href='/my/filter/'>filters</a>-->]
+	                        [prefs<!--<a href='/my/prefs'>prefs</a>-->]
+                        
 						{% else %}
-						<form id='loginform' action='/login/' method='post'>
-                     name <input name='username' type='text' size='8' />
-                     pass <input name='password' type='password' size='8' />
-                     <input type='submit' name='login' value='login' />
-                     [or: <a href='/register/'>register</a>]
-	                    </form>
+							<form id='loginform' action='{% url login %}' method='post'>
+		                     name <input name='username' type='text' size='8' />
+		                     pass <input name='password' type='password' size='8' />
+		                     <input type='submit' name='login' value='login' />
+		                     [or: <a href='{% url register %}'>register</a>]
+		                    </form>
 						{% endif %}
                     </td>
                 </tr>
@@ -49,9 +51,9 @@
                     <td>
             <ul>
         		<li id='active'><a href='/'>Home</a></li>
-                <li><a href='/tags/'>Tags</a></li>
-                <li><a href='/about'>About</a></li>
-                <li><a href='/about/contact'>Contact</a></li>
+                <li><a href='{% url tags %}'>Tags</a></li>
+                <li><a href='{% url about %}'>About</a></li>
+                <li><a href='{% url contact %}'>Contact</a></li>
                 <li><a href='http://onebiglibrary.net/taxonomy/term/1'>News</a></li>
             </ul>
                     </td>
@@ -60,7 +62,7 @@
                             Search:
                             <input type='text' name='q' width='10' 
 								{% if q %}value='{{ q }}'{% endif %}/>
-                            [<a href='/search'>hints</a>]
+                            [<a href='{% url search %}'>hints</a>]
                         </form>
                     </td>
     
@@ -69,19 +71,18 @@
         </div>
 
 		<div id='content'>
+			{% if messages %}
+			<div id='messages'>
+				<ul>
+				{% for message in messages %}
+					<li>{{ message }}</li>
+				{% endfor %}
+				</ul>
+			</div>
+			{% endif %}
 
-{% if messages %}
-<div id='messages'>
-	<ul>
-	{% for message in messages %}
-		<li>{{ message }}</li>
-	{% endfor %}
-	</ul>
-</div>
-{% endif %}
-
-{% block content %}
-{% endblock %}
+			{% block content %}
+			{% endblock %}
 		</div>
         
 {% include "footer.html" %}

@@ -424,6 +424,11 @@ a.tl-item:hover {
     font-weight: normal;
 }
 
+.bookmarklet {
+    border: 1px #222;
+    padding: .5em;
+}
+
 .tl-item-icon {
     vertical-align: text-top;
     margin: 0;

@@ -6,19 +6,19 @@ from django.contrib.auth import authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import login
 from django.core.paginator import Paginator
+from django.core.urlresolvers import reverse
 from django import forms
 from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.http import HttpResponsePermanentRedirect
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext, loader
 from django.utils import feedgenerator
-
 from solr import SolrConnection
 
 from unalog2.base import models as m
 from unalog2.settings import SOLR_URL
 
-class UrlEntryForm(forms.Form):
+class UrlEntryForm (forms.Form):
     url = forms.URLField(required=True, label='URL')
     title = forms.CharField(required=True)
     tags = forms.CharField(required=False, help_text='Separate with spaces')
@@ -27,7 +27,7 @@ class UrlEntryForm(forms.Form):
     content = forms.CharField(required=False, widget=forms.Textarea)
 
 
-def standard_entries():
+def standard_entries ():
     """
     Start a base queryset of entries common to many pages.
     """
@@ -39,7 +39,12 @@ def standard_entries():
     return qs
 
 
-def get_page(request, paginator):
+def solr_connection ():
+    s = SolrConnection(settings.SOLR_URL)
+    return s
+
+
+def get_page (request, paginator):
     try:
         page_num = int(request.GET.get('p', '1'))
         if page_num not in paginator.page_range:
@@ -49,7 +54,7 @@ def get_page(request, paginator):
     return paginator.page(page_num)
     
 
-def pagify(request, qs, num_items=50):
+def pagify (request, qs, num_items=50):
     """
     Convenience helper to paginate out a query set.
     """
@@ -62,15 +67,15 @@ def pagify(request, qs, num_items=50):
     return paginator, page
 
 
-def old_stack_link(request):
+def old_stack_link (request):
     """
     Redirect from old bookmarklet path.
     """
-    return HttpResponseRedirect('/entry/url/new')
+    return HttpResponseRedirect(reverse('entry_new'))
     
 
 @login_required
-def new_url_entry(request):
+def entry_new (request):
     """
     Save a new URL entry.
     """
@@ -100,8 +105,7 @@ def new_url_entry(request):
             
             # It must be either new, or a duplicate url by choice, so go ahead
             new_entry = m.Entry(user=request.user, title=title, 
-                is_private=is_private,
-                comment=comment, content=content)
+                is_private=is_private, comment=comment, content=content)
 
             url, was_created = m.Url.objects.get_or_create(value=url_str)
             new_entry.url = url
@@ -115,106 +119,109 @@ def new_url_entry(request):
             request.user.message_set.create(message='Saved your entry.')
             # If they had to confirm this, they don't need an edit screen again
             if submit == 'Save anyway':
-                return HttpResponseRedirect('/')
+                return HttpResponseRedirect(reverse('index'))
             # Otherwise, let them tweak it
-            return HttpResponseRedirect('/entry/%s/edit' % new_entry.id)
+            return HttpResponseRedirect(reverse('entry_edit', args=[new_entry.id]))
     else:
         form = UrlEntryForm()
-    return render_to_response('new_entry.html', {'form': form}, context)
+    return render_to_response('new_entry.html', 
+        {'form': form}, context)
 
 
 @login_required
-def delete_url_entry(request, entry_id):
+def entry_delete (request, entry_id):
     """
     Let a user choose to delete an entry.
     """
     context = RequestContext(request)
-    entry = get_object_or_404(m.Entry, id=entry_id)
-    if entry.user != request.user:
+    e = get_object_or_404(m.Entry, id=entry_id)
+    if e.user != request.user:
         request.user.message_set.create(
             message="You can't go and delete other people's stuff like that, dude.")
         return HttpRequestRedirect('/')
     if request.method == 'POST':
         was_confirmed = request.POST['submit']
         if was_confirmed == 'yes':
-            entry.delete()
+            e.delete()
             message = 'Deleted entry %s' % entry_id
             request.user.message_set.create(message=message)
             return HttpResponseRedirect('/')
     return render_to_response('delete_entry.html', 
-        {'entry': entry}, context)
+        {'entry': e}, context)
 
 
-def url_entry(request, entry_id):
+def entry (request, entry_id):
     """
     View an existing entry.
     """
     context = RequestContext(request)
-    entry = get_object_or_404(m.Entry, id=entry_id)
-    return render_to_response('url_entry.html', {'entry': entry}, context)
+    e = get_object_or_404(m.Entry, id=entry_id)
+    return render_to_response('url_entry.html', {'entry': e}, context)
 
 
 @login_required
-def edit_url_entry(request, entry_id):
-    """
-    Update an existing URL entry.
-    """
+def entry_edit (request, entry_id):
     context = RequestContext(request)
-    entry = get_object_or_404(m.Entry, id=entry_id)
-    if not entry.user == request.user:
-        return HttpResponseRedirect('/entry/%s' % entry.id)
+    e = get_object_or_404(m.Entry, id=entry_id)
+    if not e.user == request.user:
+        return HttpResponseRedirect('/entry/%s' % e.id)
     if request.method == 'POST':
         # NOTE: this is pretty redundant.  not completely, but pretty.
         form = UrlEntryForm(request.POST)
         if form.is_valid():
             url_str = form.cleaned_data['url']
             tags_orig = form.cleaned_data['tags']
-            entry.title = form.cleaned_data['title']
-            entry.is_private = form.cleaned_data['is_private']
-            entry.comment = form.cleaned_data['comment']
-            entry.content = form.cleaned_data['content']
+            e.title = form.cleaned_data['title']
+            e.is_private = form.cleaned_data['is_private']
+            e.comment = form.cleaned_data['comment']
+            e.content = form.cleaned_data['content']
             
             url, was_created = m.Url.objects.get_or_create(value=url_str)
-            entry.url = url
+            e.url = url
             
             # Remove original tags
-            m.EntryTag.objects.filter(entry=entry).delete()
+            m.EntryTag.objects.filter(entry=e).delete()
             
             tag_strs = tags_orig.split(' ')
-            entry.add_tags(tag_strs)
+            e.add_tags(tag_strs)
 
-            entry.save()
+            e.save()
 
             request.user.message_set.create(message='Saved your entry.')
-            #return HttpResponseRedirect('/entry/%s/edit' % entry.id)
-            return HttpResponseRedirect('/')
+            return HttpResponseRedirect(reverse('index'))
     else:
         data = {
-            'url': entry.url.value,
-            'title': entry.title,
-            'comment': entry.comment,
-            'content': entry.content,
-            'tags': ' '.join([et.tag.name for et in entry.tags.all()]),
-            'is_private': entry.is_private,
+            'url': e.url.value,
+            'title': e.title,
+            'comment': e.comment,
+            'content': e.content,
+            'tags': ' '.join([et.tag.name for et in e.tags.all()]),
+            'is_private': e.is_private,
             }
         form = UrlEntryForm(data)
     return render_to_response('update_entry.html', 
-        {'form': form, 'entry': entry, 'foo': 'foo'}, context)
+        {'form': form, 'entry': e, 'foo': 'foo'}, context)
     
 
-def indexing_js(request):
+def bookmarklet (request):
+    context = RequestContext(request)
+    return render_to_response('bookmarklet.html', {
+        'site_url': settings.UNALOG_URL,
+        }, context)
+
+
+def indexing_js (request):
     """
     Return the base indexing javascript.  Rendered as a template to allow
     settings-based url base value, only.  Ugh.
     """
     t = loader.get_template('indexing.js')
-    c = RequestContext(request, {'site_url': settings.UNALOG_URL})
-    
-    return HttpResponse(t.render(c), mimetype='application/javascript')
+    context = RequestContext(request, {'site_url': settings.UNALOG_URL})
+    return HttpResponse(t.render(context), mimetype='application/javascript')
 
 
 
-def atom_feed(page, **kwargs):
+def atom_feed (page, **kwargs):
     """
     Simple Atom Syndication Format 1.0 feed.
     """
@@ -232,34 +239,33 @@ def atom_feed(page, **kwargs):
         mimetype='application/atom+xml')
 
 
-    
-def logout_view(request):
-    """
-    Log a user out of the system.
-    """
+def about (request):
+    context = RequestContext(request)
+    return render_to_response('about.html', 
+        {'title': 'About'},
+        context)
+
+def contact (request):
+    context = RequestContext(request)
+    return render_to_response('contact.html', 
+        {'title': 'Contact'},
+        context)
+
+def logout_view (request):
     logout(request)
     return HttpResponseRedirect('/')
 
-
-def register_view(request):
-    """
-    Register a new user in the system.
-    """
+def register_view (request):
     context = RequestContext(request)
     return render_to_response('register.html', 
         {'title': 'Registration disabled'},
         context)
 
 
-def index(request, format='html'):
-    """
-    Basic view for everybody.
-    """
+def index (request):
     context = RequestContext(request)
     qs = standard_entries()
     paginator, page = pagify(request, qs)
-    if format == 'atom':
-        return atom_feed(page=page, title='latest from everybody')
     return render_to_response('index.html', {
         'view_hidden': True,
         'title': 'home', 
@@ -267,19 +273,20 @@ def index(request, format='html'):
         'view_hidden': False,
         'feed_url': '/feed/',
         }, context)
+
+
+def feed_atom (request):
+    context = RequestContext(request)
+    qs = standard_entries()
+    paginator, page = pagify(request, qs)
+    return atom_feed(page=page, title='latest from everybody')
+
         
-        
-def tag(request, tag_name, format='html'):
-    """
-    Basic view for any tag.
-    """
+def tag (request, tag_name):
     context = RequestContext(request)
     qs = standard_entries()
     qs = qs.filter(tags__tag__name=tag_name)
     paginator, page = pagify(request, qs)
-    if format == 'atom':
-        return atom_feed(page=page, title='latest from everybody for tag "%s"' % tag_name,
-            link='/tag/%s/' % tag_name)
     return render_to_response('index.html', {
         'title': 'tag "%s" for everyone' % tag_name, 
         'browse_type': 'tag', 'tag': tag_name,
@@ -287,10 +294,17 @@ def tag(request, tag_name, format='html'):
         'feed_url': '/tag/%s/feed/' % tag_name,
         }, context)
 
-def tags_all(request):
-    """
-    Summary page for overall tag usage.
-    """
+
+def tag_atom (request, tag_name):
+    context = RequestContext(request)
+    qs = standard_entries()
+    qs = qs.filter(tags__tag__name=tag_name)
+    paginator, page = pagify(request, qs)
+    return atom_feed(page=page, title='latest from everybody for tag "%s"' % tag_name,
+        link='/tag/%s/' % tag_name)
+
+
+def tags (request):
     context = RequestContext(request)
     qs_count = m.EntryTag.count()
     count_paginator, count_page = pagify(request, qs_count)
@@ -304,14 +318,7 @@ def tags_all(request):
         }, context)
 
         
-def person(request, user_name):
-    """
-    A legacy URL pattern.  Resolve it just in case.
-    """
-    return HttpResponsePermanentRedirect('/user/%s/' % user_name)
-
-
-def may_see_user(request_user, entry_user):
+def may_see_user (request_user, entry_user):
     may_see = True
     message = ''
     if entry_user.is_active == False:
@@ -324,13 +331,15 @@ def may_see_user(request_user, entry_user):
     return (may_see, message)
 
 
-def user(request, user_name, format='html'):
-    """
-    Basic view for a user.
-    """
+def person (request, user_name):
+    """A legacy URL pattern.  Resolve it just in case."""
+    return HttpResponsePermanentRedirect(reverse('user', args=[user_name]))
+
+
+def user (request, user_name):
     context = RequestContext(request)
-    user = get_object_or_404(m.User, username=user_name)
-    may_see, message = may_see_user(request.user, user)
+    view_user = get_object_or_404(m.User, username=user_name)
+    may_see, message = may_see_user(request.user, view_user)
     if not may_see:
         return render_to_response('index.html', {
             'view_hidden': True,
@@ -340,28 +349,69 @@ def user(request, user_name, format='html'):
         
     qs = m.Entry.objects.filter(user=user)
     # Hide public entry_user's private stuff unless it's the user themself
-    if user != request.user:
+    if view_user != request.user:
         qs = qs.exclude(is_private=True)
     qs = qs.order_by('-date_created')
     paginator, page = pagify(request, qs)
-        
-    if format == 'atom':
-        return atom_feed(page=page, title='latest from %s' % user_name,
-            link='http://unalog.com/user/%s' % user_name)
     return render_to_response('index.html', {
         'view_hidden': False,
         'title': 'user %s' % user_name,
         'paginator': paginator, 'page': page,
-        'browse_type': 'user', 'browse_user': user, 
-        'browse_user_name': user.username,
+        'browse_type': 'user', 'browse_user': view_user, 
+        'browse_user_name': view_user.username,
         'feed_url': '/user/%s/feed/' % user_name,
         }, context)
     
 
-def user_tag(request, user_name, tag_name='', format='html'):
-    """
-    View one user's entries with a particular tag.
-    """
+def user_atom (request, user_name):
+    context = RequestContext(request)
+    view_user = get_object_or_404(m.User, username=user_name)
+    may_see, message = may_see_user(request.user, view_user)
+    if not may_see:
+        return render_to_response('index.html', {
+            'view_hidden': True,
+            'title': 'user %s' % user_name,
+            'message': message,
+            }, context)
+
+    qs = m.Entry.objects.filter(user=user)
+    # Hide public entry_user's private stuff unless it's the user themself
+    if view_user != request.user:
+        qs = qs.exclude(is_private=True)
+    qs = qs.order_by('-date_created')
+    paginator, page = pagify(request, qs)
+
+    return atom_feed(page=page, title='latest from %s' % user_name,
+        link='http://unalog.com/user/%s' % user_name)
+
+
+def user_tag (request, user_name, tag_name=''):
+    context = RequestContext(request)
+    user = get_object_or_404(m.User, username=user_name)
+    may_see, message = may_see_user(request.user, user)
+    if not may_see:
+        return render_to_response('index.html', {
+            'view_hidden': True,
+            'title': 'user %s' % user_name,
+            'message': message,
+            }, context)
+
+    qs = m.Entry.objects.filter(user=user, tags__tag__name=tag_name)
+    # Hide public entry_user's private stuff unless it's the user themself
+    if user != request.user:
+        qs = qs.exclude(is_private=True)
+    qs = qs.order_by('-date_created')
+    paginator, page = pagify(request, qs)
+    return render_to_response('index.html', {
+        'view_hidden': False,
+        'title': "user %s's tag %s" % (user_name, tag_name),
+        'paginator': paginator, 'page': page,
+        'browse_type': 'tag', 'browse_user': user, 'tag': tag_name,
+        'feed_url': '/user/%s/tag/%s/feed/' % (user_name, tag_name),
+        }, context)
+
+
+def user_tag_atom (request, user_name, tag_name=''):
     context = RequestContext(request)
     user = get_object_or_404(m.User, username=user_name)
     may_see, message = may_see_user(request.user, user)
@@ -379,20 +429,12 @@ def user_tag(request, user_name, tag_name='', format='html'):
     qs = qs.order_by('-date_created')
     paginator, page = pagify(request, qs)
 
-    if format == 'atom':
-        return atom_feed(page=page, 
-            title='latest from %s - "%s"' % (user_name, tag_name),
-            link='http://unalog.com/user/%s/tag/%s/' % (user_name, tag_name))
-    return render_to_response('index.html', {
-        'view_hidden': False,
-        'title': "user %s's tag %s" % (user_name, tag_name),
-        'paginator': paginator, 'page': page,
-        'browse_type': 'tag', 'browse_user': user, 'tag': tag_name,
-        'feed_url': '/user/%s/tag/%s/feed/' % (user_name, tag_name),
-        }, context)
+    return atom_feed(page=page, 
+        title='latest from %s - "%s"' % (user_name, tag_name),
+        link=reverse('user_tag', args=[user_name, tag_name]))
     
     
-def user_tags(request, user_name):
+def user_tags (request, user_name):
     """
     Review all this user's tags.
     """
@@ -420,7 +462,7 @@ def user_tags(request, user_name):
         }, context)
 
 
-def url_all(request, md5sum='', format='html'):
+def url (request, md5sum=''):
     """
     Review all entries from all users for this one URL.
     """
@@ -429,9 +471,6 @@ def url_all(request, md5sum='', format='html'):
     qs = standard_entries()
     qs = qs.filter(url=url)
     paginator, page = pagify(request, qs)
-    if format == 'atom':
-        return atom_feed(page=page, title='latest for url',
-            link='http://unalog.com/url/%s/' % md5sum)
     return render_to_response('index.html', {
         'view_hidden': False,
         'title': "url %s" % url.value[:50],
@@ -440,10 +479,22 @@ def url_all(request, md5sum='', format='html'):
         'feed_url': '/url/%s/feed/' % md5sum,
         }, context)
 
+def url_atom (request):
+    """
+    Review all entries from all users for this one URL.
+    """
+    context = RequestContext(request)
+    url = get_object_or_404(m.Url, md5sum=md5sum)
+    qs = standard_entries()
+    qs = qs.filter(url=url)
+    paginator, page = pagify(request, qs)
+    return atom_feed(page=page, title='latest for url',
+        link=reverse(url('url', args=[md5sum])))
+
     
 # Groups.
 
-def may_see_group(request_user, group):
+def may_see_group (request_user, group):
     may_see = True
     message = ''
     if group.get_profile().is_private:
@@ -454,7 +505,7 @@ def may_see_group(request_user, group):
     return (may_see, message)
 
     
-def group(request, group_name, format='html'):
+def group (request, group_name, format='html'):
     """
     Basic view for a group.
     """
@@ -486,31 +537,25 @@ def group(request, group_name, format='html'):
         'feed_url': '/group/%s/feed/' % group_name,
         }, context)
     
-def group_tag(request, group_name, tag_name='', format='html'):
+def group_tag (request, group_name, tag_name=''):
     """
     View one group's entries with a particular tag.
     """
     context = RequestContext(request)
     group = get_object_or_404(m.Group, name=group_name)
     may_see, message = may_see_group(request.user, group)
-    
     if not may_see:
         return render_to_response('index.html', {
             'view_hidden': True,
             'title': 'group %s' % group_name,
             'message': message,
             }, context)
-    
     qs = m.Entry.objects.filter(groups__name=group_name, tags__tag__name=tag_name)
     qs = qs.order_by('-date_created')
     # If they're not a member, don't let them see private stuff
     if not request.user in group.user_set.all():
         qs.exclude(is_private=True)
     paginator, page = pagify(request, qs)
-    if format == 'atom':
-        return atom_feed(page=page, 
-            title='latest from group "%s" tag "%s"' % (group_name, tag_name),
-            link='http://unalog.com/group/%s/tag/%s/' % (group_name, tag_name))
     return render_to_response('index.html', {
         'view_hidden': False,
         'title': "Group %s's tag %s" % (group_name, tag_name),
@@ -519,18 +564,33 @@ def group_tag(request, group_name, tag_name='', format='html'):
         'feed_url': '/group/%s/tag/%s/feed/' % (group_name, tag_name),
         }, context)
         
+def group_tag_atom (request, group_name):
+    context = RequestContext(request)
+    group = get_object_or_404(m.Group, name=group_name)
+    may_see, message = may_see_group(request.user, group)
+    if not may_see:
+        return render_to_response('index.html', {
+            'view_hidden': True,
+            'title': 'group %s' % group_name,
+            'message': message,
+            }, context)
+    qs = m.Entry.objects.filter(groups__name=group_name, tags__tag__name=tag_name)
+    qs = qs.order_by('-date_created')
+    # If they're not a member, don't let them see private stuff
+    if not request.user in group.user_set.all():
+        qs.exclude(is_private=True)
+    paginator, page = pagify(request, qs)
+    return atom_feed(page=page, 
+        title='latest from group "%s" tag "%s"' % (group_name, tag_name),
+        link='http://unalog.com/group/%s/tag/%s/' % (group_name, tag_name))
+
+
         
 COMMON_FACET_PARAMS = {
     'facet': 'true',
     'facet.field': 'tag',
     'facet.mincount': 2,
     }        
-
-
-
-def solr_connection():
-    s = SolrConnection(settings.SOLR_URL)
-    return s
 
 
 class SolrPaginator:
@@ -629,7 +689,7 @@ class SolrPage:
     
         
         
-def search(request):
+def search (request):
     """
     Simple search, queries Solr behind the scenes.
     
@@ -638,8 +698,8 @@ def search(request):
     context = RequestContext(request)
     q = request.GET.get('q', '')
     if q:
-        s = SolrConnection(settings.SOLR_URL)
-        r = s.query(q, rows=25, sort='date_created', sort_order='asc',
+        s = solr_connection()
+        r = s.query(q, rows=50, sort='date_created', sort_order='asc',
             **COMMON_FACET_PARAMS)
         paginator = SolrPaginator(q, r)
         try:

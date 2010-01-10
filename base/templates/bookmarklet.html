@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Bookmarklets</h2>
+
+<p>
+Use a bookmarklet to add links; drag a bookmarklet from below
+into your personal toolbar.  Then, whenever you visit a page
+you want to add here, click the bookmarklet.
+</p>
+
+
+
+
+<p>
+    This bookmarklet: &gt;<a id='bookmarklet' href="javascript:void(z=document.createElement('script'));void(z.language='javascript');void(z.type='text/javascript');void(z.src='{{site_url}}/indexing.js');void(document.getElementsByTagName('head')[0].appendChild(z));">unalog!</a>&lt;
+    will send your browser window and its page content right into unalog.
+</p>
+
+{% endblock %}

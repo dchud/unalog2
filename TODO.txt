@@ -72,15 +72,24 @@ X Startup "hey there's nothing here!" message.
 
 X Incremental index/update/delete entry in solr
 
-  Opensearch
-
 X Preserve tag order?
 
+X Update for Django 1.1
+
+  DRY in views
+
   Privacy
+
+  Opensearch
 
   Inactive users 
 
   Filters
+    view
+    edit
+    execute
+      browse
+      search
 
   Tag edits
 
@@ -88,20 +97,18 @@ X Preserve tag order?
 
   Reaper 
 
-  Update for Django 1.1
-
-  Update for Solr 1.4
-
   -- functionally complete --
 
 
 
 Next round:
 
+  Update for Solr 1.4
+  
   Search:
-	paging links
+  X paging links
 	facets
-  X sorting
+    sorting
 	
   Registration
 
@@ -123,8 +130,6 @@ Redesign:
 
 After port-ability:
   
-  Rethink EntryType model
-  
   tag recommendations
 
   comment threads/discussions
@@ -136,8 +141,6 @@ After port-ability:
 
 
 Way after:
-
-  different entry types - data
 
   machine tags
 

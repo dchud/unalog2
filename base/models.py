@@ -244,7 +244,7 @@ class Entry (m.Model):
         # Write out the to db
         super(Entry, self).save(force_insert, force_update)
         if solr_index:
-            self.solr_index
+            self.solr_index()
 
     def delete(self, solr_delete=True):
         """

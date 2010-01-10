@@ -1,4 +1,4 @@
-var unaURL="{{ site_url }}/entry/url/new";
+var unaURL="{{ site_url }}/entry/new";
 
 if (document.location.href.indexOf(unaURL) == -1) { 
     var title = document.title;
