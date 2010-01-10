@@ -9,8 +9,8 @@ from django.db import connection, reset_queries
 from unalog2.base import models as m
 from unalog2.settings import SOLR_URL
 
-MAX_DOCS_PER_ADD = 50
-COMMIT_FREQUENCY = 5
+MAX_DOCS_PER_ADD = 5
+COMMIT_FREQUENCY = 50
 
 class Command(BaseCommand):
     user_option = optparse.make_option('--user',

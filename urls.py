@@ -21,7 +21,7 @@ urlpatterns = patterns('',
 urlpatterns += patterns('unalog2.base.views',
     # Site-wide
     url(r'^$', 'index', name='index'),
-    url(r'^feed/$', 'feed_atom', name='feed_atom'),
+    url(r'^feed/$', 'feed', name='feed'),
     url(r'^logout/$', 'logout_view', name='logout'),
     url(r'^register/$', 'register_view', name='register'),
     url(r'^my/stack/link', 'old_stack_link', name='old_stack_link'),
@@ -41,39 +41,40 @@ urlpatterns += patterns('unalog2.base.views',
     
     url(r'^tags/$', 'tags', name='tags'),
     url(r'^tag/(?P<tag_name>[a-zA-Z0-9:._-]+)/$', 'tag', name='tag'),
-    url(r'^tag/(?P<tag_name>[a-zA-Z0-9:._-]+)/feed/$', 'tag_atom', 
-        name='tag_atom'),
+    url(r'^tag/(?P<tag_name>[a-zA-Z0-9:._-]+)/feed/$', 'tag_feed', 
+        name='tag_feed'),
     
     # Users
     url(r'^user/(?P<user_name>[a-zA-Z0-9._]+)/$', 'user', name='user'),
-    url(r'^user/(?P<user_name>[a-zA-Z0-9._]+)/feed/$', 'user_atom', 
-        name='user_atom'),
+    url(r'^user/(?P<user_name>[a-zA-Z0-9._]+)/feed/$', 'user_feed', 
+        name='user_feed'),
     url(r'^user/(?P<user_name>[a-zA-Z0-9._]+)/tags/$', 'user_tags', 
         name='user_tags'),
     url(r'^user/(?P<user_name>[a-zA-Z0-9._]+)/tag/(?P<tag_name>[a-zA-Z0-9:._-]+)/$', 
         'user_tag', name='user_tag'),
     url(r'^user/(?P<user_name>[a-zA-Z0-9._]+)/tag/(?P<tag_name>[a-zA-Z0-9:._-]+)/feed/$', 
-        'user_tag_atom', name='user_tag_atom'),
+        'user_tag_feed', name='user_tag_feed'),
 
     # Legacy url pattern - redirect.  No name assigned to discourage use.
     url(r'^person/(?P<user_name>.*)/$', 'person'),
 
     # Groups... looks very familiar...
     #url(r'^group/(?P<group_name>[a-zA-Z0-9._]+)/$', 'group', name='group'),
-    #url(r'^group/(?P<group_name>[a-zA-Z0-9._]+)/feed/$', 'group_atom'),
+    #url(r'^group/(?P<group_name>[a-zA-Z0-9._]+)/feed/$', 'group_feed'),
     #url(r'^group/(?P<group_name>[a-zA-Z0-9._]+)/tags/$', 'group_tags', 
     #    name='group_tags'),
     #url(r'^group/(?P<group_name>[a-zA-Z0-9._]+)/tag/(?P<tag_name>[a-zA-Z0-9:._-]+)/$', 
     #    'group_tag', name='group_tag'),
     #url(r'^group/(?P<group_name>[a-zA-Z0-9._]+)/tag/(?P<tag_name>[a-zA-Z0-9:._-]+)/feed/$', 
-    #    'group_tag_atom', name='group_tag_atom'),
+    #    'group_tag_feed', name='group_tag_feed'),
 
     # URLs
     url(r'^url/(?P<md5sum>[a-f0-9]{32})/$', 'url', name='url'),
-    url(r'^url/(?P<md5sum>[a-f0-9]{32})/feed/$', 'url_atom', 
-        name='url_atom'),
+    url(r'^url/(?P<md5sum>[a-f0-9]{32})/feed/$', 'url_feed', 
+        name='url_feed'),
     
     # Search
-    url(r'^search/', 'search', name='search'),
+    url(r'^search/$', 'search', name='search'),
+    url(r'^search/feed/$', 'search_feed', name='search_feed'),
     
     )

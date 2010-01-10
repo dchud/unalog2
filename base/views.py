@@ -316,11 +316,11 @@ def index (request):
     return render_to_response('index.html', {
         'title': 'home', 
         'paginator': paginator, 'page': page, 
-        'feed_url': reverse('feed_atom'),
+        'feed_url': reverse('feed'),
         }, context)
 
 
-def feed_atom (request):
+def feed (request):
     context = RequestContext(request)
     qs = constrained_entries(request)
     paginator, page = pagify(request, qs)
@@ -334,11 +334,11 @@ def tag (request, tag_name):
     return render_to_response('index.html', {
         'browse_type': 'tag', 'tag': tag_name,
         'paginator': paginator, 'page': page, 
-        'feed_url': reverse('tag_atom', args=[tag_name]),
+        'feed_url': reverse('tag_feed', args=[tag_name]),
         }, context)
 
 
-def tag_atom (request, tag_name):
+def tag_feed (request, tag_name):
     context = RequestContext(request)
     qs = constrained_entries(request, tag_name=tag_name)
     paginator, page = pagify(request, qs)
@@ -396,11 +396,11 @@ def user (request, user_name):
         'paginator': paginator, 'page': page,
         'browse_type': 'user', 'browse_user': u, 
         'browse_user_name': u.username,
-        'feed_url': reverse('user_atom', args=[user_name]),
+        'feed_url': reverse('user_feed', args=[user_name]),
         }, context)
     
 
-def user_atom (request, user_name):
+def user_feed (request, user_name):
     context = RequestContext(request)
     u = get_object_or_404(m.User, username=user_name)
     may_see, message = may_see_user(request.user, u)
@@ -418,7 +418,7 @@ def user_atom (request, user_name):
     paginator, page = pagify(request, qs)
 
     return atom_feed(page=page, title='latest from %s' % user_name,
-        link=reverse('user_atom', args=[user_name]))
+        link=reverse('user_feed', args=[user_name]))
 
 
 def user_tag (request, user_name, tag_name=''):
@@ -439,11 +439,11 @@ def user_tag (request, user_name, tag_name=''):
     return render_to_response('index.html', {
         'paginator': paginator, 'page': page,
         'browse_type': 'tag', 'browse_user': u, 'tag': tag_name,
-        'feed_url': reverse('user_tag_atom', args=[user_name, tag_name]),
+        'feed_url': reverse('user_tag_feed', args=[user_name, tag_name]),
         }, context)
 
 
-def user_tag_atom (request, user_name, tag_name=''):
+def user_tag_feed (request, user_name, tag_name=''):
     context = RequestContext(request)
     u = get_object_or_404(m.User, username=user_name)
     may_see, message = may_see_user(request.user, u)
@@ -503,10 +503,10 @@ def url (request, md5sum=''):
         'title': "url %s" % url.value[:50],
         'paginator': paginator, 'page': page,
         'browse_type': 'url', 'browse_url': url,
-        'feed_url': reverse('url_atom', args=[md5sum]),
+        'feed_url': reverse('url_feed', args=[md5sum]),
         }, context)
 
-def url_atom (request):
+def url_feed (request):
     """
     Review all entries from all users for this one URL.
     """
@@ -558,7 +558,7 @@ def group (request, group_name, format='html'):
     return render_to_response('index.html', {
         'paginator': paginator, 'page': page,
         'browse_type': 'group', 'browse_group': group, 
-        'feed_url': reverse('group_atom', args=[group_name]),
+        'feed_url': reverse('group_feed', args=[group_name]),
         }, context)
     
 def group_tag (request, group_name, tag_name=''):
@@ -584,10 +584,10 @@ def group_tag (request, group_name, tag_name=''):
         'title': "Group %s's tag %s" % (group_name, tag_name),
         'paginator': paginator, 'page': page,
         'browse_type': 'group', 'browse_group': group, 'tag': tag_name,
-        'feed_url': reverse('group_tag_atom', args=[group_name, tag_name]),
+        'feed_url': reverse('group_tag_feed', args=[group_name, tag_name]),
         }, context)
         
-def group_tag_atom (request, group_name):
+def group_tag_feed (request, group_name):
     context = RequestContext(request)
     group = get_object_or_404(m.Group, name=group_name)
     may_see, message = may_see_group(request.user, group)
@@ -604,7 +604,7 @@ def group_tag_atom (request, group_name):
     paginator, page = pagify(request, qs)
     return atom_feed(page=page, 
         title='latest from group "%s" tag "%s"' % (group_name, tag_name),
-        link=reverse('group_tag_atom', args=[group_name, tag_name]))
+        link=reverse('group_tag_feed', args=[group_name, tag_name]))
 
 
         
@@ -734,4 +734,25 @@ def search (request):
             'paginator': paginator, 'page': page,
             'query_param': 'q=%s&' % q,
             }, context)
+    return render_to_response('index.html', context)
+
+def search_feed (request):
+    """
+    FIXME: use constrained_entries()
+    FIXME: doesn't do opensearch right
+    """
+    context = RequestContext(request)
+    q = request.GET.get('q', '')
+    if q:
+        s = solr_connection()
+        r = s.query(q, rows=50, sort='date_created', sort_order='asc',
+            **COMMON_FACET_PARAMS)
+        paginator = SolrPaginator(q, r)
+        try:
+            page = get_page(request, paginator)
+            return atom_feed(page=page, 
+                title='latest for search "%s"' % q,
+                link=reverse('search_feed'))
+        except:
+            page = None
     return render_to_response('index.html', context)

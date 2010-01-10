@@ -85,11 +85,11 @@ X Update for Django 1.1
   Inactive users 
 
   Filters
-    view
-    edit
     execute
-      browse
+    X browse
       search
+ 	view
+    edit
 
   Tag edits
 
