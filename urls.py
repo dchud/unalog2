@@ -45,10 +45,9 @@ urlpatterns += patterns('unalog2.base.views',
         name='tag_atom'),
     
     # Users
-    url(r'^user/(?P<user_name>[a-zA-Z0-9._]+)/$', 'user', {'format': 'html'},
-        name='user'),
+    url(r'^user/(?P<user_name>[a-zA-Z0-9._]+)/$', 'user', name='user'),
     url(r'^user/(?P<user_name>[a-zA-Z0-9._]+)/feed/$', 'user_atom', 
-        {'format': 'atom'}, name='user_atom'),
+        name='user_atom'),
     url(r'^user/(?P<user_name>[a-zA-Z0-9._]+)/tags/$', 'user_tags', 
         name='user_tags'),
     url(r'^user/(?P<user_name>[a-zA-Z0-9._]+)/tag/(?P<tag_name>[a-zA-Z0-9:._-]+)/$', 
@@ -61,19 +60,18 @@ urlpatterns += patterns('unalog2.base.views',
 
     # Groups... looks very familiar...
     #url(r'^group/(?P<group_name>[a-zA-Z0-9._]+)/$', 'group', name='group'),
-    #url(r'^group/(?P<group_name>[a-zA-Z0-9._]+)/feed/$', 'group_atom', 
-    #    {'format': 'atom'}),
+    #url(r'^group/(?P<group_name>[a-zA-Z0-9._]+)/feed/$', 'group_atom'),
     #url(r'^group/(?P<group_name>[a-zA-Z0-9._]+)/tags/$', 'group_tags', 
     #    name='group_tags'),
     #url(r'^group/(?P<group_name>[a-zA-Z0-9._]+)/tag/(?P<tag_name>[a-zA-Z0-9:._-]+)/$', 
     #    'group_tag', name='group_tag'),
     #url(r'^group/(?P<group_name>[a-zA-Z0-9._]+)/tag/(?P<tag_name>[a-zA-Z0-9:._-]+)/feed/$', 
-    #    'group_tag_atom', {'format': 'atom'}, name='group_tag_atom'),
+    #    'group_tag_atom', name='group_tag_atom'),
 
     # URLs
     url(r'^url/(?P<md5sum>[a-f0-9]{32})/$', 'url', name='url'),
     url(r'^url/(?P<md5sum>[a-f0-9]{32})/feed/$', 'url_atom', 
-        {'format': 'atom'}, name='url_atom'),
+        name='url_atom'),
     
     # Search
     url(r'^search/', 'search', name='search'),

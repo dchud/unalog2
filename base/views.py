@@ -18,7 +18,7 @@ from solr import SolrConnection
 from unalog2.base import models as m
 from unalog2.settings import SOLR_URL
 
-class UrlEntryForm (forms.Form):
+class EntryForm (forms.Form):
     url = forms.URLField(required=True, label='URL')
     title = forms.CharField(required=True)
     tags = forms.CharField(required=False, help_text='Separate with spaces')
@@ -82,7 +82,7 @@ def entry_new (request):
     context = RequestContext(request)
     d = {}
     if request.method == 'POST':
-        form = UrlEntryForm(request.POST)
+        form = EntryForm(request.POST)
         if form.is_valid():
             url_str = form.cleaned_data['url']
             title = form.cleaned_data['title']
@@ -98,7 +98,7 @@ def entry_new (request):
             if old_entries:
                 # If it's not 'Save anyway', they haven't confirmed yet
                 if not submit == 'Save anyway':
-                    return render_to_response('new_entry.html', {
+                    return render_to_response('entry_new.html', {
                         'form': form,
                         'old_entries': old_entries,
                         }, context)
@@ -123,8 +123,8 @@ def entry_new (request):
             # Otherwise, let them tweak it
             return HttpResponseRedirect(reverse('entry_edit', args=[new_entry.id]))
     else:
-        form = UrlEntryForm()
-    return render_to_response('new_entry.html', 
+        form = EntryForm()
+    return render_to_response('entry_new.html', 
         {'form': form}, context)
 
 
@@ -138,14 +138,14 @@ def entry_delete (request, entry_id):
     if e.user != request.user:
         request.user.message_set.create(
             message="You can't go and delete other people's stuff like that, dude.")
-        return HttpRequestRedirect('/')
+        return HttpRequestRedirect(reverse('index'))
     if request.method == 'POST':
         was_confirmed = request.POST['submit']
         if was_confirmed == 'yes':
             e.delete()
             message = 'Deleted entry %s' % entry_id
             request.user.message_set.create(message=message)
-            return HttpResponseRedirect('/')
+            return HttpResponseRedirect(reverse('index'))
     return render_to_response('delete_entry.html', 
         {'entry': e}, context)
 
@@ -164,10 +164,10 @@ def entry_edit (request, entry_id):
     context = RequestContext(request)
     e = get_object_or_404(m.Entry, id=entry_id)
     if not e.user == request.user:
-        return HttpResponseRedirect('/entry/%s' % e.id)
+        return HttpResponseRedirect(reverse('entry', args=[e.id]))
     if request.method == 'POST':
         # NOTE: this is pretty redundant.  not completely, but pretty.
-        form = UrlEntryForm(request.POST)
+        form = EntryForm(request.POST)
         if form.is_valid():
             url_str = form.cleaned_data['url']
             tags_orig = form.cleaned_data['tags']
@@ -198,9 +198,10 @@ def entry_edit (request, entry_id):
             'tags': ' '.join([et.tag.name for et in e.tags.all()]),
             'is_private': e.is_private,
             }
-        form = UrlEntryForm(data)
-    return render_to_response('update_entry.html', 
-        {'form': form, 'entry': e, 'foo': 'foo'}, context)
+        form = EntryForm(data)
+    return render_to_response('update_entry.html', {
+        'form': form, 'entry': e,
+        }, context)
     
 
 def bookmarklet (request):
@@ -291,7 +292,7 @@ def tag (request, tag_name):
         'title': 'tag "%s" for everyone' % tag_name, 
         'browse_type': 'tag', 'tag': tag_name,
         'paginator': paginator, 'page': page, 
-        'feed_url': '/tag/%s/feed/' % tag_name,
+        'feed_url': reverse('tag_atom', args=[tag_name]),
         }, context)
 
 
@@ -300,8 +301,9 @@ def tag_atom (request, tag_name):
     qs = standard_entries()
     qs = qs.filter(tags__tag__name=tag_name)
     paginator, page = pagify(request, qs)
-    return atom_feed(page=page, title='latest from everybody for tag "%s"' % tag_name,
-        link='/tag/%s/' % tag_name)
+    return atom_feed(page=page, 
+        title='latest from everybody for tag "%s"' % tag_name,
+        link=reverse('tag', args=[tag_name]))
 
 
 def tags (request):
@@ -338,8 +340,8 @@ def person (request, user_name):
 
 def user (request, user_name):
     context = RequestContext(request)
-    view_user = get_object_or_404(m.User, username=user_name)
-    may_see, message = may_see_user(request.user, view_user)
+    u = get_object_or_404(m.User, username=user_name)
+    may_see, message = may_see_user(request.user, u)
     if not may_see:
         return render_to_response('index.html', {
             'view_hidden': True,
@@ -347,9 +349,9 @@ def user (request, user_name):
             'message': message,
             }, context)
         
-    qs = m.Entry.objects.filter(user=user)
+    qs = m.Entry.objects.filter(user=u)
     # Hide public entry_user's private stuff unless it's the user themself
-    if view_user != request.user:
+    if u != request.user:
         qs = qs.exclude(is_private=True)
     qs = qs.order_by('-date_created')
     paginator, page = pagify(request, qs)
@@ -357,16 +359,16 @@ def user (request, user_name):
         'view_hidden': False,
         'title': 'user %s' % user_name,
         'paginator': paginator, 'page': page,
-        'browse_type': 'user', 'browse_user': view_user, 
-        'browse_user_name': view_user.username,
-        'feed_url': '/user/%s/feed/' % user_name,
+        'browse_type': 'user', 'browse_user': u, 
+        'browse_user_name': u.username,
+        'feed_url': reverse('user_atom', args=[user_name]),
         }, context)
     
 
 def user_atom (request, user_name):
     context = RequestContext(request)
-    view_user = get_object_or_404(m.User, username=user_name)
-    may_see, message = may_see_user(request.user, view_user)
+    u = get_object_or_404(m.User, username=user_name)
+    may_see, message = may_see_user(request.user, u)
     if not may_see:
         return render_to_response('index.html', {
             'view_hidden': True,
@@ -374,9 +376,9 @@ def user_atom (request, user_name):
             'message': message,
             }, context)
 
-    qs = m.Entry.objects.filter(user=user)
+    qs = m.Entry.objects.filter(user=u)
     # Hide public entry_user's private stuff unless it's the user themself
-    if view_user != request.user:
+    if u != request.user:
         qs = qs.exclude(is_private=True)
     qs = qs.order_by('-date_created')
     paginator, page = pagify(request, qs)
@@ -387,8 +389,8 @@ def user_atom (request, user_name):
 
 def user_tag (request, user_name, tag_name=''):
     context = RequestContext(request)
-    user = get_object_or_404(m.User, username=user_name)
-    may_see, message = may_see_user(request.user, user)
+    u = get_object_or_404(m.User, username=user_name)
+    may_see, message = may_see_user(request.user, u)
     if not may_see:
         return render_to_response('index.html', {
             'view_hidden': True,
@@ -396,9 +398,9 @@ def user_tag (request, user_name, tag_name=''):
             'message': message,
             }, context)
 
-    qs = m.Entry.objects.filter(user=user, tags__tag__name=tag_name)
+    qs = m.Entry.objects.filter(user=u, tags__tag__name=tag_name)
     # Hide public entry_user's private stuff unless it's the user themself
-    if user != request.user:
+    if u != request.user:
         qs = qs.exclude(is_private=True)
     qs = qs.order_by('-date_created')
     paginator, page = pagify(request, qs)
@@ -406,15 +408,15 @@ def user_tag (request, user_name, tag_name=''):
         'view_hidden': False,
         'title': "user %s's tag %s" % (user_name, tag_name),
         'paginator': paginator, 'page': page,
-        'browse_type': 'tag', 'browse_user': user, 'tag': tag_name,
+        'browse_type': 'tag', 'browse_user': u, 'tag': tag_name,
         'feed_url': '/user/%s/tag/%s/feed/' % (user_name, tag_name),
         }, context)
 
 
 def user_tag_atom (request, user_name, tag_name=''):
     context = RequestContext(request)
-    user = get_object_or_404(m.User, username=user_name)
-    may_see, message = may_see_user(request.user, user)
+    u = get_object_or_404(m.User, username=user_name)
+    may_see, message = may_see_user(request.user, u)
     if not may_see:
         return render_to_response('index.html', {
             'view_hidden': True,
@@ -424,7 +426,7 @@ def user_tag_atom (request, user_name, tag_name=''):
 
     qs = m.Entry.objects.filter(user=user, tags__tag__name=tag_name)
     # Hide public entry_user's private stuff unless it's the user themself
-    if user != request.user:
+    if u != request.user:
         qs = qs.exclude(is_private=True)
     qs = qs.order_by('-date_created')
     paginator, page = pagify(request, qs)
@@ -439,8 +441,8 @@ def user_tags (request, user_name):
     Review all this user's tags.
     """
     context = RequestContext(request)
-    user = get_object_or_404(m.User, username=user_name)
-    may_see, message = may_see_user(request.user, user)
+    u = get_object_or_404(m.User, username=user_name)
+    may_see, message = may_see_user(request.user, u)
     if not may_see:
         return render_to_response('index.html', {
             'view_hidden': True,
@@ -448,7 +450,7 @@ def user_tags (request, user_name):
             'message': message,
             }, context)
     
-    qs = m.EntryTag.count(user=user, request_user=request.user)
+    qs = m.EntryTag.count(user=u, request_user=request.user)
     paginator, page = pagify(request, qs, num_items=250)
     qs_alpha = m.EntryTag.count(order='alpha')
     alpha_paginator, alpha_page = pagify(request, qs_alpha, num_items=250)
@@ -458,7 +460,7 @@ def user_tags (request, user_name):
         'title': "user %s's tags" % user_name,
         'paginator': paginator, 'page': page,
         'alpha_paginator': alpha_paginator, 'alpha_page': alpha_page,
-        'browse_user': user,
+        'browse_user': u,
         }, context)
 
 
