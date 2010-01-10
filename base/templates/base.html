@@ -18,7 +18,8 @@
     
 						{% if user.is_authenticated %}
                         	logged in as: 
-	                        <span class='bold'><a href='{% url user user.username %}'>{{ user.username }}</span>
+	                        <span class='bold'>{{ user.username }}</span>
+							[<a href='{% url user user.username %}'>entries</a>]
 	                        [<a href='{% url user_tags user.username %}'>tags</a>]
 							[<a href='{% url bookmarklet %}'>bookmarklet</a>]
 							{% if user.is_staff %}

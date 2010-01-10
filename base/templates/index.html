@@ -2,96 +2,80 @@
 
 {% block content %}
 
+{% ifnotequal title "home" %}
+<h2>{{ title }}</h2>
+{% endifnotequal %}
 
-{% if view_hidden %}
+{% ifequal browse_type "user" %}
+<h2><a href='{% url user browse_user_name %}'>{{ browse_user_name }}</a> 
+	{% if browse_user.get_profile.url %}
+	- <a href='{{ browse_user.get_profile.url }}'>{{ browse_user.get_profile.url }}</a> - 
+	{% endif %}
+	{% if tag %}
+	tag "{{ tag }}"
+	{% else %}
+	[<a href='/user/{{ browse_user_name }}/tags/'>tags</a>]
+	{% endif %}
+	</h2>
+{% endifequal %}
 
-	<h2>This view is private</h2>
-	<p>
- 	{{ message }}
-	</p>
+{% ifequal browse_type "tag" %}
+<h2>Tag <a href='/tag/{{ tag }}/'>{{ tag }}</a>
+	{% if browse_user %}
+	for <a href='/user/{{ browse_user.username }}/'>{{ browse_user.username }}</a>
+	{% else %}
+	for everyone
+	{% endif %}
+	</h2>
+{% endifequal %}
+
+{% ifequal browse_type "url" %}
+<h2>URL <a href='{{ browse_url.value }}'>{{ browse_url.value|escape  }}</a></h2>
+{% endifequal %}
+
+{% ifequal browse_type "group" %}
+<h2>Group {{ browse_group.name }}
+	{% if tag %}
+	tag "{{ tag }}"
+	{% endif %}
+	</h2>
+{% endifequal %}
+
+{% if page.object_list %}
+
+   <div id='entryset'>
+
+	{% regroup page.object_list|dictsortreversed:"date_created" by date_created.date as date_groups %}
+	{% for date_group in date_groups %}
 	
+		<h2>{{ date_group.grouper|date:"l, Y-m-d" }}<h2>
+		
+        {% for entry in date_group.list|dictsortreversed:"date_created.time" %}
+			{% include "entry.html" %}
+           {% endfor %}       
+
+       {% endfor %}
+
+   </div>
+
 {% else %}
 
-	{% ifnotequal title "home" %}
-	<h2>{{ title }}</h2>
-	{% endifnotequal %}
-
-	{% ifequal browse_type "user" %}
-	<h2><a href='/user/{{ browse_user_name }}/'>{{ browse_user_name }}</a> 
-		{% if browse_user.get_profile.url %}
-		- <a href='{{ browse_user.get_profile.url }}'>{{ browse_user.get_profile.url }}</a> - 
-		{% endif %}
-		{% if tag %}
-		tag "{{ tag }}"
-		{% else %}
-		[<a href='/user/{{ browse_user_name }}/tags/'>tags</a>]
-		{% endif %}
-		</h2>
-	{% endifequal %}
-
-	{% ifequal browse_type "tag" %}
-	<h2>Tag <a href='/tag/{{ tag }}/'>{{ tag }}</a>
-		{% if browse_user %}
-		for <a href='/user/{{ browse_user.username }}/'>{{ browse_user.username }}</a>
-		{% else %}
-		for everyone
-		{% endif %}
-		</h2>
-	{% endifequal %}
-
-	{% ifequal browse_type "url" %}
-	<h2>URL <a href='{{ browse_url.value }}'>{{ browse_url.value|escape  }}</a></h2>
-	{% endifequal %}
-
-	{% ifequal browse_type "group" %}
-	<h2>Group {{ browse_group.name }}
-		{% if tag %}
-		tag "{{ tag }}"
-		{% endif %}
-		</h2>
-	{% endifequal %}
-
-	{% if page.object_list %}
-
-    <div id='entryset'>
-
-		{% regroup page.object_list|dictsortreversed:"date_created" by date_created.date as date_groups %}
-		{% for date_group in date_groups %}
-		
-			<h2>{{ date_group.grouper|date:"l, Y-m-d" }}<h2>
-			
-	        {% for entry in date_group.list|dictsortreversed:"date_created.time" %}
-				{% include "entry.html" %}
-            {% endfor %}       
-
-        {% endfor %}
-
-    </div>
-
-	{% else %}
-
-		<p>
-			Nothing found.
-		</p>
-
-	{% endif %}
-
-
-		
-		{% if page.has_other_pages %}
-			{% if query_param %}
-				{% include 'query_pagination.html' %}
-			{% else %}
-				{% include 'pagination.html' %}
-			{% endif %}
-		{% endif %}
-	
-
-	    <p>
-	    ADD FILTERING.
-	    </p>
+	<p>
+		Nothing found.
+	</p>
 
 {% endif %}
+
+
+	
+{% if page.has_other_pages %}
+	{% if query_param %}
+		{% include 'query_pagination.html' %}
+	{% else %}
+		{% include 'pagination.html' %}
+	{% endif %}
+{% endif %}
+
 
 {% endblock %}
 

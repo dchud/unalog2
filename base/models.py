@@ -31,13 +31,13 @@ Group.get_profile = get_profile
 
 
 class UserProfile (m.Model):
-    user = m.ForeignKey(User, unique=True)
+    user = m.OneToOneField(User)
     is_private = m.BooleanField(default=False, db_index=True)
     default_to_private_entry = m.BooleanField(default=False)
     url = m.URLField(blank=True, verify_exists=True)
     token = m.CharField(blank=True, max_length=32)
     tz = m.CharField(blank=True, max_length=6)
-    group_invites = m.ManyToManyField(Group, related_name='invitees')
+    group_invites = m.ManyToManyField(Group, related_name='invitees', blank=True)
     date_modified = m.DateTimeField(auto_now=True)
 
 

@@ -39,6 +39,51 @@ def standard_entries ():
     return qs
 
 
+def constrained_entries (request, requested_user=None,
+    requested_group=None, tag_name=None):
+    """
+    Start a base queryset of entries common to many pages.
+    """
+    qs = m.Entry.objects.exclude(user__is_active=False)
+    
+    if request.user:
+        if requested_group:
+            pass
+        if request.user != requested_user:
+            # Non-private users
+            # Note:  on the following, qs.exclude...=True blows up.
+            qs = qs.filter(user__userprofile__is_private=False)
+            # Non-private entries
+            qs = qs.exclude(is_private=True)
+        else:
+            # They're asking for their own entries, so let 'em through
+            pass
+            
+        # Apply filters
+        for f in request.user.filters.filter(is_active=True):
+            if f.attr_name == 'user':
+                if f.is_exact:
+                    qs = qs.exclude(user__username=f.value)
+                else:
+                    qs = qs.exclude(user__username__icontains=f.value)
+            elif f.attr_name == 'tag':
+                if f.is_exact:
+                    qs = qs.exclude(tags__tag__name=f.value)
+                else:
+                    qs = qs.exclude(tags__tag__name__icontains=f.value)
+            elif f.attr_name == 'url':
+                if f.is_exact:
+                    qs = qs.exclude(url__value=f.value)
+                else:
+                    qs = qs.exclude(url__value__icontains=f.value)
+            
+    if tag_name:
+        qs = qs.filter(tags__tag__name=tag_name)
+    qs = qs.order_by('-date_created')
+    return qs
+
+
+
 def solr_connection ():
     s = SolrConnection(settings.SOLR_URL)
     return s
@@ -234,10 +279,11 @@ def atom_feed (page, **kwargs):
         description=description, language=language)
     for entry in page.object_list:
         feed.add_item(title=entry.title, link=entry.url.value, 
+            id=reverse('entry', args=[entry.id]),
             description=entry.comment, pubdate=entry.date_created,
-            categories=[tag.name for tag in entry.tags.all()])
+            categories=[entry_tag.tag.name for entry_tag in entry.tags.all()])
     return HttpResponse(feed.writeString('utf8'), 
-        mimetype='application/atom+xml')
+        mimetype='application/xml')
 
 
 def about (request):
@@ -265,31 +311,27 @@ def register_view (request):
 
 def index (request):
     context = RequestContext(request)
-    qs = standard_entries()
+    qs = constrained_entries(request)
     paginator, page = pagify(request, qs)
     return render_to_response('index.html', {
-        'view_hidden': True,
         'title': 'home', 
         'paginator': paginator, 'page': page, 
-        'view_hidden': False,
-        'feed_url': '/feed/',
+        'feed_url': reverse('feed_atom'),
         }, context)
 
 
 def feed_atom (request):
     context = RequestContext(request)
-    qs = standard_entries()
+    qs = constrained_entries(request)
     paginator, page = pagify(request, qs)
     return atom_feed(page=page, title='latest from everybody')
 
         
 def tag (request, tag_name):
     context = RequestContext(request)
-    qs = standard_entries()
-    qs = qs.filter(tags__tag__name=tag_name)
+    qs = constrained_entries(request, tag_name=tag_name)
     paginator, page = pagify(request, qs)
     return render_to_response('index.html', {
-        'title': 'tag "%s" for everyone' % tag_name, 
         'browse_type': 'tag', 'tag': tag_name,
         'paginator': paginator, 'page': page, 
         'feed_url': reverse('tag_atom', args=[tag_name]),
@@ -298,8 +340,7 @@ def tag (request, tag_name):
 
 def tag_atom (request, tag_name):
     context = RequestContext(request)
-    qs = standard_entries()
-    qs = qs.filter(tags__tag__name=tag_name)
+    qs = constrained_entries(request, tag_name=tag_name)
     paginator, page = pagify(request, qs)
     return atom_feed(page=page, 
         title='latest from everybody for tag "%s"' % tag_name,
@@ -313,8 +354,6 @@ def tags (request):
     qs_alpha = m.EntryTag.count(order='alpha')
     alpha_paginator, alpha_page = pagify(request, qs_alpha)
     return render_to_response('tags.html', {
-        'view_hidden': False,
-        'title': 'all tags',
         'paginator': count_paginator, 'page': count_page,
         'alpha_paginator': alpha_paginator, 'alpha_page': alpha_page,
         }, context)
@@ -344,8 +383,6 @@ def user (request, user_name):
     may_see, message = may_see_user(request.user, u)
     if not may_see:
         return render_to_response('index.html', {
-            'view_hidden': True,
-            'title': 'user %s' % user_name,
             'message': message,
             }, context)
         
@@ -356,8 +393,6 @@ def user (request, user_name):
     qs = qs.order_by('-date_created')
     paginator, page = pagify(request, qs)
     return render_to_response('index.html', {
-        'view_hidden': False,
-        'title': 'user %s' % user_name,
         'paginator': paginator, 'page': page,
         'browse_type': 'user', 'browse_user': u, 
         'browse_user_name': u.username,
@@ -371,7 +406,6 @@ def user_atom (request, user_name):
     may_see, message = may_see_user(request.user, u)
     if not may_see:
         return render_to_response('index.html', {
-            'view_hidden': True,
             'title': 'user %s' % user_name,
             'message': message,
             }, context)
@@ -384,7 +418,7 @@ def user_atom (request, user_name):
     paginator, page = pagify(request, qs)
 
     return atom_feed(page=page, title='latest from %s' % user_name,
-        link='http://unalog.com/user/%s' % user_name)
+        link=reverse('user_atom', args=[user_name]))
 
 
 def user_tag (request, user_name, tag_name=''):
@@ -393,8 +427,6 @@ def user_tag (request, user_name, tag_name=''):
     may_see, message = may_see_user(request.user, u)
     if not may_see:
         return render_to_response('index.html', {
-            'view_hidden': True,
-            'title': 'user %s' % user_name,
             'message': message,
             }, context)
 
@@ -405,11 +437,9 @@ def user_tag (request, user_name, tag_name=''):
     qs = qs.order_by('-date_created')
     paginator, page = pagify(request, qs)
     return render_to_response('index.html', {
-        'view_hidden': False,
-        'title': "user %s's tag %s" % (user_name, tag_name),
         'paginator': paginator, 'page': page,
         'browse_type': 'tag', 'browse_user': u, 'tag': tag_name,
-        'feed_url': '/user/%s/tag/%s/feed/' % (user_name, tag_name),
+        'feed_url': reverse('user_tag_atom', args=[user_name, tag_name]),
         }, context)
 
 
@@ -419,12 +449,11 @@ def user_tag_atom (request, user_name, tag_name=''):
     may_see, message = may_see_user(request.user, u)
     if not may_see:
         return render_to_response('index.html', {
-            'view_hidden': True,
             'title': 'user %s' % user_name,
             'message': message,
             }, context)
 
-    qs = m.Entry.objects.filter(user=user, tags__tag__name=tag_name)
+    qs = m.Entry.objects.filter(user=u, tags__tag__name=tag_name)
     # Hide public entry_user's private stuff unless it's the user themself
     if u != request.user:
         qs = qs.exclude(is_private=True)
@@ -445,8 +474,6 @@ def user_tags (request, user_name):
     may_see, message = may_see_user(request.user, u)
     if not may_see:
         return render_to_response('index.html', {
-            'view_hidden': True,
-            'title': 'user %s' % user_name,
             'message': message,
             }, context)
     
@@ -456,8 +483,6 @@ def user_tags (request, user_name):
     alpha_paginator, alpha_page = pagify(request, qs_alpha, num_items=250)
     
     return render_to_response('tags.html', {
-        'view_hidden': False,
-        'title': "user %s's tags" % user_name,
         'paginator': paginator, 'page': page,
         'alpha_paginator': alpha_paginator, 'alpha_page': alpha_page,
         'browse_user': u,
@@ -478,7 +503,7 @@ def url (request, md5sum=''):
         'title': "url %s" % url.value[:50],
         'paginator': paginator, 'page': page,
         'browse_type': 'url', 'browse_url': url,
-        'feed_url': '/url/%s/feed/' % md5sum,
+        'feed_url': reverse('url_atom', args=[md5sum]),
         }, context)
 
 def url_atom (request):
@@ -518,7 +543,6 @@ def group (request, group_name, format='html'):
     if not may_see:
         return render_to_response('index.html', {
             'view_hidden': True,
-            'title': 'group %s' % group_name,
             'message': message,
             }, context)
     
@@ -532,11 +556,9 @@ def group (request, group_name, format='html'):
         return atom_feed(page=page, title='latest from group "%s"' % group_name,
             link='http://unalog.com/group/%s/' % group_name)
     return render_to_response('index.html', {
-        'view_hidden': False,
-        'title': 'Group %s' % group_name,
         'paginator': paginator, 'page': page,
         'browse_type': 'group', 'browse_group': group, 
-        'feed_url': '/group/%s/feed/' % group_name,
+        'feed_url': reverse('group_atom', args=[group_name]),
         }, context)
     
 def group_tag (request, group_name, tag_name=''):
@@ -559,11 +581,10 @@ def group_tag (request, group_name, tag_name=''):
         qs.exclude(is_private=True)
     paginator, page = pagify(request, qs)
     return render_to_response('index.html', {
-        'view_hidden': False,
         'title': "Group %s's tag %s" % (group_name, tag_name),
         'paginator': paginator, 'page': page,
         'browse_type': 'group', 'browse_group': group, 'tag': tag_name,
-        'feed_url': '/group/%s/tag/%s/feed/' % (group_name, tag_name),
+        'feed_url': reverse('group_tag_atom', args=[group_name, tag_name]),
         }, context)
         
 def group_tag_atom (request, group_name):
@@ -572,7 +593,6 @@ def group_tag_atom (request, group_name):
     may_see, message = may_see_group(request.user, group)
     if not may_see:
         return render_to_response('index.html', {
-            'view_hidden': True,
             'title': 'group %s' % group_name,
             'message': message,
             }, context)
@@ -584,7 +604,7 @@ def group_tag_atom (request, group_name):
     paginator, page = pagify(request, qs)
     return atom_feed(page=page, 
         title='latest from group "%s" tag "%s"' % (group_name, tag_name),
-        link='http://unalog.com/group/%s/tag/%s/' % (group_name, tag_name))
+        link=reverse('group_tag_atom', args=[group_name, tag_name]))
 
 
         

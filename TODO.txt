@@ -50,7 +50,7 @@ X 404/500
 
 X Tag landing page
 
-  Entry form  <-- YOU ARE HERE!
+X entry form
   X login/next
   X tags
   X edit
@@ -96,6 +96,8 @@ X Update for Django 1.1
   Groups - entry, etc.
 
   Reaper 
+
+  Why do atom feeds use tag urls?
 
   -- functionally complete --
 
