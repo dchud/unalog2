@@ -1,9 +1,6 @@
-from cStringIO import StringIO
 from datetime import datetime
 import hashlib
 import re
-
-import iso8601 
 
 from solr import SolrConnection, UTC, utc_from_string
 
