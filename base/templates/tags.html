@@ -13,38 +13,38 @@
 		<tr>
 			<td width='50%' valign='top'>
 				<h3>Sorted by count</h3>
-<table id='tags' class='gentable' cellspacing='1'>
-	<tbody>
-	{% for count, name in page.object_list %}
-		<tr>
-			<th valign='top'>{{ count }}</th>
-			{% if browse_user %}
-			<td class='coll1' valign='top'><a rel='tag' href='/user/{{ browse_user.username }}/tag/{{ name }}/'>{{ name }}</a></td>
-			{% else %}
-			<td class='coll1' valign='top'><a rel='tag' href='/tag/{{ name }}/'>{{ name }}</a></td>			
-			{% endif %}
-		</tr>
-	{% endfor %}
-	</tbody>
-</table>
+				<table id='tags' class='gentable' cellspacing='1'>
+					<tbody>
+					{% for pair in page.object_list %}
+						<tr>
+							<th valign='top'>{{ pair.tag__count }}</th>
+							{% if browse_user %}
+								<td class='coll1' valign='top'><a rel='tag' href='/user/{{ browse_user.username }}/tag/{{ pair.tag__name }}/'>{{ pair.tag__name }}</a></td>
+							{% else %}
+								<td class='coll1' valign='top'><a rel='tag' href='/tag/{{ pair.tag__name }}/'>{{ pair.tag__name }}</a></td>			
+							{% endif %}
+						</tr>
+					{% endfor %}
+					</tbody>
+				</table>
 			</td>
 			
 			<td width='50%' valign='top'>
 				<h3>Sorted by tag</h3>
-<table id='tags_alpha' class='gentable' cellspacing='1'>
-	<tbody>
-	{% for count, name in alpha_page.object_list %}
-		<tr>
-			<th valign='top'>{{ count }}</th>
-			{% if browse_user %}
-			<td class='coll1' valign='top'><a rel='tag' href='/user/{{ browse_user.username }}/tag/{{ name }}/'>{{ name }}</a></td>
-			{% else %}
-			<td class='coll1' valign='top'><a rel='tag' href='/tag/{{ name }}/'>{{ name }}</a></td>
-			{% endif %}
-		</tr>
-	{% endfor %}
-	</tbody>
-</table>
+				<table id='tags_alpha' class='gentable' cellspacing='1'>
+					<tbody>
+					{% for pair in alpha_page.object_list %}
+						<tr>
+							<th valign='top'>{{ pair.tag__count }}</th>
+							{% if browse_user %}
+								<td class='coll1' valign='top'><a rel='tag' href='/user/{{ browse_user.username }}/tag/{{ pair.tag__name }}/'>{{ pair.tag__name }}</a></td>
+							{% else %}
+								<td class='coll1' valign='top'><a rel='tag' href='/tag/{{ pair.tag__name }}/'>{{ pair.tag__name }}</a></td>
+							{% endif %}
+						</tr>
+					{% endfor %}
+					</tbody>
+				</table>
 			</td>
 			
 			

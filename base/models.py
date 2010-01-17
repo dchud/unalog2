@@ -82,7 +82,7 @@ class EntryTag (m.Model):
             private_clause = ''
         else:
             # NOTE: postgresql-specific value
-            private_clause = 'AND base_entry.is_private is false'
+            private_clause = 'AND base_entry.is_private IS FALSE'
 
         if user:
             user_clause = 'AND base_entry.user_id=%s' % user.id
@@ -101,7 +101,7 @@ class EntryTag (m.Model):
             WHERE base_entry.id=base_entrytag.entry_id 
             AND base_tag.id=base_entrytag.tag_id 
             AND auth_user.id=base_entry.user_id
-            AND auth_user.is_active is true
+            AND auth_user.is_active IS TRUE
             %s
             %s
             GROUP BY tag_id, name 

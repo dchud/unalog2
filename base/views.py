@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import login
 from django.core.paginator import Paginator
 from django.core.urlresolvers import reverse
+from django.db.models import Count
 from django import forms
 from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.http import HttpResponsePermanentRedirect
@@ -39,46 +40,75 @@ def standard_entries ():
     return qs
 
 
+def apply_user_filters_to_entries (request, qs):
+    for f in request.user.filters.filter(is_active=True):
+        if f.attr_name == 'user':
+            if f.is_exact:
+                qs = qs.exclude(user__username=f.value)
+            else:
+                qs = qs.exclude(user__username__icontains=f.value)
+        elif f.attr_name == 'tag':
+            if f.is_exact:
+                qs = qs.exclude(tags__tag__name=f.value)
+            else:
+                qs = qs.exclude(tags__tag__name__icontains=f.value)
+        elif f.attr_name == 'url':
+            if f.is_exact:
+                qs = qs.exclude(url__value=f.value)
+            else:
+                qs = qs.exclude(url__value__icontains=f.value)
+    return qs
+
+
+def apply_user_filters_to_entry_tags (request, qs):
+    for f in request.user.filters.filter(is_active=True):
+        if f.attr_name == 'user':
+            if f.is_exact:
+                qs = qs.exclude(entry__user__username=f.value)
+            else:
+                qs = qs.exclude(entry__user__username__icontains=f.value)
+        elif f.attr_name == 'tag':
+            if f.is_exact:
+                qs = qs.exclude(entry__tags__tag__name=f.value)
+            else:
+                qs = qs.exclude(entry__tags__tag__name__icontains=f.value)
+        elif f.attr_name == 'url':
+            if f.is_exact:
+                qs = qs.exclude(entry__url__value=f.value)
+            else:
+                qs = qs.exclude(entry__url__value__icontains=f.value)
+    return qs
+
+
 def constrained_entries (request, requested_user=None,
-    requested_group=None, tag_name=None):
+    requested_group=None, tag_name=None, candidate_ids=[]):
     """
     Start a base queryset of entries common to many pages.
     """
     qs = m.Entry.objects.exclude(user__is_active=False)
-    
-    if request.user:
-        if requested_group:
-            pass
-        if request.user != requested_user:
-            # Non-private users
-            # Note:  on the following, qs.exclude...=True blows up.
-            qs = qs.filter(user__userprofile__is_private=False)
-            # Non-private entries
-            qs = qs.exclude(is_private=True)
-        else:
-            # They're asking for their own entries, so let 'em through
-            pass
-            
-        # Apply filters
-        for f in request.user.filters.filter(is_active=True):
-            if f.attr_name == 'user':
-                if f.is_exact:
-                    qs = qs.exclude(user__username=f.value)
-                else:
-                    qs = qs.exclude(user__username__icontains=f.value)
-            elif f.attr_name == 'tag':
-                if f.is_exact:
-                    qs = qs.exclude(tags__tag__name=f.value)
-                else:
-                    qs = qs.exclude(tags__tag__name__icontains=f.value)
-            elif f.attr_name == 'url':
-                if f.is_exact:
-                    qs = qs.exclude(url__value=f.value)
-                else:
-                    qs = qs.exclude(url__value__icontains=f.value)
-            
+
+    if candidate_ids:
+        qs = qs.filter(id__in=candidate_ids)
+        
+    # should work for anonymous and logged-in users both
+    if request.user != requested_user:
+        # Non-private users
+        # Note:  on the following, qs.exclude...=True blows up.
+        qs = qs.filter(user__userprofile__is_private=False)
+        # Non-private entries
+        qs = qs.exclude(is_private=True)
+
+    if requested_group:
+        # skipping for now
+        pass
+
     if tag_name:
         qs = qs.filter(tags__tag__name=tag_name)
+
+    # apply the following only to logged-in users
+    if request.user.is_authenticated():
+        qs = apply_user_filters_to_entries(request, qs)
+
     qs = qs.order_by('-date_created')
     return qs
 
@@ -200,8 +230,13 @@ def entry (request, entry_id):
     View an existing entry.
     """
     context = RequestContext(request)
+    # First use the shortcut to bounce to 404 if nec.; a cheat!
     e = get_object_or_404(m.Entry, id=entry_id)
-    return render_to_response('url_entry.html', {'entry': e}, context)
+    qs = constrained_entries(request, candidate_ids=[entry_id])
+    return render_to_response('index.html', {
+        'title': 'Entry', 
+        'paginator': paginator, 'page': page, 
+        }, context)
 
 
 @login_required
@@ -349,9 +384,15 @@ def tag_feed (request, tag_name):
 
 def tags (request):
     context = RequestContext(request)
-    qs_count = m.EntryTag.count()
+    qs = m.EntryTag.objects.filter(entry__user__userprofile__is_private=False)
+    qs = qs.exclude(entry__is_private=True)
+    qs = apply_user_filters_to_entry_tags(request, qs)
+    qs = qs.values('tag__name').annotate(Count('tag'))
+
+    qs_count = qs.order_by('-tag__count')
     count_paginator, count_page = pagify(request, qs_count)
-    qs_alpha = m.EntryTag.count(order='alpha')
+
+    qs_alpha = qs.order_by('tag__name')
     alpha_paginator, alpha_page = pagify(request, qs_alpha)
     return render_to_response('tags.html', {
         'paginator': count_paginator, 'page': count_page,
@@ -380,17 +421,8 @@ def person (request, user_name):
 def user (request, user_name):
     context = RequestContext(request)
     u = get_object_or_404(m.User, username=user_name)
-    may_see, message = may_see_user(request.user, u)
-    if not may_see:
-        return render_to_response('index.html', {
-            'message': message,
-            }, context)
-        
-    qs = m.Entry.objects.filter(user=u)
-    # Hide public entry_user's private stuff unless it's the user themself
-    if u != request.user:
-        qs = qs.exclude(is_private=True)
-    qs = qs.order_by('-date_created')
+    qs = constrained_entries(request, requested_user=u)
+    qs = qs.filter(user=u)
     paginator, page = pagify(request, qs)
     return render_to_response('index.html', {
         'paginator': paginator, 'page': page,
@@ -424,17 +456,7 @@ def user_feed (request, user_name):
 def user_tag (request, user_name, tag_name=''):
     context = RequestContext(request)
     u = get_object_or_404(m.User, username=user_name)
-    may_see, message = may_see_user(request.user, u)
-    if not may_see:
-        return render_to_response('index.html', {
-            'message': message,
-            }, context)
-
-    qs = m.Entry.objects.filter(user=u, tags__tag__name=tag_name)
-    # Hide public entry_user's private stuff unless it's the user themself
-    if u != request.user:
-        qs = qs.exclude(is_private=True)
-    qs = qs.order_by('-date_created')
+    qs = constrained_entries(request, requested_user=u, tag_name=tag_name)
     paginator, page = pagify(request, qs)
     return render_to_response('index.html', {
         'paginator': paginator, 'page': page,
@@ -479,7 +501,7 @@ def user_tags (request, user_name):
     
     qs = m.EntryTag.count(user=u, request_user=request.user)
     paginator, page = pagify(request, qs, num_items=250)
-    qs_alpha = m.EntryTag.count(order='alpha')
+    qs_alpha = m.EntryTag.count(user=u, request_user=request.user, order='alpha')
     alpha_paginator, alpha_page = pagify(request, qs_alpha, num_items=250)
     
     return render_to_response('tags.html', {
@@ -735,6 +757,7 @@ def search (request):
             'query_param': 'q=%s&' % q,
             }, context)
     return render_to_response('index.html', context)
+
 
 def search_feed (request):
     """
