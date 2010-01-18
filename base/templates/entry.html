@@ -24,14 +24,14 @@
 			{% with entry.tags.all as entry_tags %}
             with tag{{ tag_count|pluralize }}
     			{% for entry_tag in entry_tags %}
-        <a class='tag' rel='tag' href='/user/{{ entry.user.username }}/tag/{{ entry_tag.tag.name }}/'>{{ entry_tag.tag.name }}</a>
+        <a class='tag' rel='tag' href='/user/{{ entry.user.username|iriencode }}/tag/{{ entry_tag.tag.name|iriencode }}/'>{{ entry_tag.tag.name }}</a>
 				{% endfor %}
 			{% endwith %}
 		{% endifnotequal %}
 	{% endwith %}
 
 	{% for group in entry.groups.all %}
-		in group <a href='/group/{{ group.name }}/'>{{ group.name }}</a>
+		in group <a href='/group/{{ group.name|iriencode }}/'>{{ group.name }}</a>
 	{% endfor %}
 
 	{% ifnotequal entry.other_count 0 %}

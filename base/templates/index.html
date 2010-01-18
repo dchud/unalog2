@@ -20,7 +20,7 @@
 {% endifequal %}
 
 {% ifequal browse_type "tag" %}
-<h2>Tag <a href='/tag/{{ tag }}/'>{{ tag }}</a>
+<h2>Tag <a href='/tag/{{ tag|iriencode }}/'>{{ tag }}</a>
 	{% if browse_user %}
 	for <a href='/user/{{ browse_user.username }}/'>{{ browse_user.username }}</a>
 	{% else %}

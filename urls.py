@@ -37,11 +37,11 @@ urlpatterns += patterns('unalog2.base.views',
         name='entry_edit'),
     url(r'^entry/(?P<entry_id>[0-9]+)/delete/$', 'entry_delete', 
         name='entry_delete'),
-        
     
+    # Tags (site-wide)
     url(r'^tags/$', 'tags', name='tags'),
-    url(r'^tag/(?P<tag_name>[a-zA-Z0-9:._-]+)/$', 'tag', name='tag'),
-    url(r'^tag/(?P<tag_name>[a-zA-Z0-9:._-]+)/feed/$', 'tag_feed', 
+    url(r'^tag/(?P<tag_name>[\w:._-]+)/$', 'tag', name='tag'),
+    url(r'^tag/(?P<tag_name>[\w:._-]+)/feed/$', 'tag_feed', 
         name='tag_feed'),
     
     # Users
@@ -50,9 +50,9 @@ urlpatterns += patterns('unalog2.base.views',
         name='user_feed'),
     url(r'^user/(?P<user_name>[a-zA-Z0-9._]+)/tags/$', 'user_tags', 
         name='user_tags'),
-    url(r'^user/(?P<user_name>[a-zA-Z0-9._]+)/tag/(?P<tag_name>[a-zA-Z0-9:._-]+)/$', 
+    url(r'^user/(?P<user_name>[a-zA-Z0-9._]+)/tag/(?P<tag_name>[\w:._-]+)/$', 
         'user_tag', name='user_tag'),
-    url(r'^user/(?P<user_name>[a-zA-Z0-9._]+)/tag/(?P<tag_name>[a-zA-Z0-9:._-]+)/feed/$', 
+    url(r'^user/(?P<user_name>[a-zA-Z0-9._]+)/tag/(?P<tag_name>[\w:._-]+)/feed/$', 
         'user_tag_feed', name='user_tag_feed'),
 
     # Legacy url pattern - redirect.  No name assigned to discourage use.

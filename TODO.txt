@@ -82,10 +82,10 @@ X Update for Django 1.1
 
   Opensearch
 
-  Inactive users 
+X Inactive users 
 
   Filters
-    execute
+    X execute
     X browse
       search
  	view

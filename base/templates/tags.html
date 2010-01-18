@@ -19,9 +19,9 @@
 						<tr>
 							<th valign='top'>{{ pair.tag__count }}</th>
 							{% if browse_user %}
-								<td class='coll1' valign='top'><a rel='tag' href='/user/{{ browse_user.username }}/tag/{{ pair.tag__name }}/'>{{ pair.tag__name }}</a></td>
+								<td class='coll1' valign='top'><a rel='tag' href='/user/{{ browse_user.username }}/tag/{{ pair.tag__name|iriencode }}/'>{{ pair.tag__name }}</a></td>
 							{% else %}
-								<td class='coll1' valign='top'><a rel='tag' href='/tag/{{ pair.tag__name }}/'>{{ pair.tag__name }}</a></td>			
+								<td class='coll1' valign='top'><a rel='tag' href='/tag/{{ pair.tag__name|iriencode }}/'>{{ pair.tag__name }}</a></td>			
 							{% endif %}
 						</tr>
 					{% endfor %}
@@ -37,9 +37,9 @@
 						<tr>
 							<th valign='top'>{{ pair.tag__count }}</th>
 							{% if browse_user %}
-								<td class='coll1' valign='top'><a rel='tag' href='/user/{{ browse_user.username }}/tag/{{ pair.tag__name }}/'>{{ pair.tag__name }}</a></td>
+								<td class='coll1' valign='top'><a rel='tag' href='/user/{{ browse_user.username }}/tag/{{ pair.tag__name|iriencode }}/'>{{ pair.tag__name }}</a></td>
 							{% else %}
-								<td class='coll1' valign='top'><a rel='tag' href='/tag/{{ pair.tag__name }}/'>{{ pair.tag__name }}</a></td>
+								<td class='coll1' valign='top'><a rel='tag' href='/tag/{{ pair.tag__name|iriencode }}/'>{{ pair.tag__name }}</a></td>
 							{% endif %}
 						</tr>
 					{% endfor %}
