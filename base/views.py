@@ -97,6 +97,8 @@ def constrained_entries (request, requested_user=None,
         qs = qs.filter(user__userprofile__is_private=False)
         # Non-private entries
         qs = qs.exclude(is_private=True)
+        if requested_user:
+            qs = qs.filter(user=requested_user)
 
     if requested_group:
         # skipping for now
@@ -154,6 +156,7 @@ def entry_new (request):
     """
     Save a new URL entry.
     """
+    request.encoding = 'utf-8'
     context = RequestContext(request)
     d = {}
     if request.method == 'POST':
@@ -177,11 +180,11 @@ def entry_new (request):
                         'form': form,
                         'old_entries': old_entries,
                         }, context)
-            
+                        
             # It must be either new, or a duplicate url by choice, so go ahead
             new_entry = m.Entry(user=request.user, title=title, 
                 is_private=is_private, comment=comment, content=content)
-
+            
             url, was_created = m.Url.objects.get_or_create(value=url_str)
             new_entry.url = url
             
@@ -264,9 +267,8 @@ def entry_edit (request, entry_id):
             
             tag_strs = tags_orig.split(' ')
             e.add_tags(tag_strs)
-
             e.save()
-
+            
             request.user.message_set.create(message='Saved your entry.')
             return HttpResponseRedirect(reverse('index'))
     else:
@@ -282,7 +284,7 @@ def entry_edit (request, entry_id):
     return render_to_response('update_entry.html', {
         'form': form, 'entry': e,
         }, context)
-    
+
 
 def bookmarklet (request):
     context = RequestContext(request)
@@ -299,7 +301,6 @@ def indexing_js (request):
     t = loader.get_template('indexing.js')
     context = RequestContext(request, {'site_url': settings.UNALOG_URL})
     return HttpResponse(t.render(context), mimetype='application/javascript')
-
 
 
 def atom_feed (page, **kwargs):
@@ -388,10 +389,8 @@ def tags (request):
     qs = qs.exclude(entry__is_private=True)
     qs = apply_user_filters_to_entry_tags(request, qs)
     qs = qs.values('tag__name').annotate(Count('tag'))
-
     qs_count = qs.order_by('-tag__count')
     count_paginator, count_page = pagify(request, qs_count)
-
     qs_alpha = qs.order_by('tag__name')
     alpha_paginator, alpha_page = pagify(request, qs_alpha)
     return render_to_response('tags.html', {
@@ -400,29 +399,28 @@ def tags (request):
         }, context)
 
         
-def may_see_user (request_user, entry_user):
+def person (request, user_name):
+    """A legacy URL pattern.  Resolve it just in case."""
+    return HttpResponsePermanentRedirect(reverse('user', args=[user_name]))
+
+
+def may_see_user (request, entry_user):
     may_see = True
     message = ''
     if entry_user.is_active == False:
         may_see = False
         message = 'User is not active'
     if entry_user.get_profile().is_private:
-        if request_user != entry_user:
+        if request.user != entry_user:
             may_see = False
             message = "This user's entries are private."
     return (may_see, message)
-
-
-def person (request, user_name):
-    """A legacy URL pattern.  Resolve it just in case."""
-    return HttpResponsePermanentRedirect(reverse('user', args=[user_name]))
 
 
 def user (request, user_name):
     context = RequestContext(request)
     u = get_object_or_404(m.User, username=user_name)
     qs = constrained_entries(request, requested_user=u)
-    qs = qs.filter(user=u)
     paginator, page = pagify(request, qs)
     return render_to_response('index.html', {
         'paginator': paginator, 'page': page,
@@ -435,20 +433,8 @@ def user (request, user_name):
 def user_feed (request, user_name):
     context = RequestContext(request)
     u = get_object_or_404(m.User, username=user_name)
-    may_see, message = may_see_user(request.user, u)
-    if not may_see:
-        return render_to_response('index.html', {
-            'title': 'user %s' % user_name,
-            'message': message,
-            }, context)
-
-    qs = m.Entry.objects.filter(user=u)
-    # Hide public entry_user's private stuff unless it's the user themself
-    if u != request.user:
-        qs = qs.exclude(is_private=True)
-    qs = qs.order_by('-date_created')
+    qs = constrained_entries(request, requested_user=u)
     paginator, page = pagify(request, qs)
-
     return atom_feed(page=page, title='latest from %s' % user_name,
         link=reverse('user_feed', args=[user_name]))
 
@@ -468,22 +454,16 @@ def user_tag (request, user_name, tag_name=''):
 def user_tag_feed (request, user_name, tag_name=''):
     context = RequestContext(request)
     u = get_object_or_404(m.User, username=user_name)
-    may_see, message = may_see_user(request.user, u)
+    may_see, message = may_see_user(request, u)
     if not may_see:
         return render_to_response('index.html', {
             'title': 'user %s' % user_name,
             'message': message,
             }, context)
-
-    qs = m.Entry.objects.filter(user=u, tags__tag__name=tag_name)
-    # Hide public entry_user's private stuff unless it's the user themself
-    if u != request.user:
-        qs = qs.exclude(is_private=True)
-    qs = qs.order_by('-date_created')
+    qs = constrained_entries(request, requested_user=u, tag_name=tag_name)
     paginator, page = pagify(request, qs)
-
     return atom_feed(page=page, 
-        title='latest from %s - "%s"' % (user_name, tag_name),
+        title='latest from %s - tag "%s"' % (user_name, tag_name),
         link=reverse('user_tag', args=[user_name, tag_name]))
     
     
@@ -493,7 +473,7 @@ def user_tags (request, user_name):
     """
     context = RequestContext(request)
     u = get_object_or_404(m.User, username=user_name)
-    may_see, message = may_see_user(request.user, u)
+    may_see, message = may_see_user(request, u)
     if not may_see:
         return render_to_response('index.html', {
             'message': message,
@@ -739,13 +719,14 @@ def search (request):
     
     FIXME: a QueryConstraints.to_solr() please
     """
+    request.encoding = 'utf-8'
     context = RequestContext(request)
     q = request.GET.get('q', '')
     if q:
         s = solr_connection()
-        r = s.query(q, rows=50, sort='date_created', sort_order='asc',
+        r = s.query(q.encode('utf8'), rows=50, sort='date_created', sort_order='asc',
             **COMMON_FACET_PARAMS)
-        paginator = SolrPaginator(q, r)
+        paginator = SolrPaginator(q.encode('utf8'), r)
         try:
             page = get_page(request, paginator)
         except:

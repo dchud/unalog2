@@ -17,6 +17,7 @@ if (document.location.href.indexOf(unaURL) == -1) {
     var unaForm = doc.createElement("form");
     unaForm.setAttribute("action", unaURL);
     unaForm.setAttribute("method", "POST");
+    unaForm.setAttribute("accept-charset", "UTF-8");
     unaForm.setAttribute("id", "unaForm");
     
     var unaDoIndex = doc.createElement("input");

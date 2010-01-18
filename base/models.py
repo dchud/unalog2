@@ -2,7 +2,7 @@ from datetime import datetime
 import hashlib
 import re
 
-from solr import SolrConnection, UTC, utc_from_string
+from solr import SolrConnection
 
 from django.conf import settings
 from django.contrib.auth.models import User, Group
