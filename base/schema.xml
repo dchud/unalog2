@@ -226,7 +226,7 @@
 	<field name="is_private_user" type="boolean" indexed="true" stored="true"
 		required="true" />
 	<field name="is_active_user" type="boolean" indexed="true" stored="true"
-			required="true" />
+		required="true" />
 	<field name="url" type="string" indexed="true" stored="true"
 		required="true" />
 	<field name="comment" type="text" indexed="true" stored="false"

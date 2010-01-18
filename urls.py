@@ -70,8 +70,7 @@ urlpatterns += patterns('unalog2.base.views',
 
     # URLs
     url(r'^url/(?P<md5sum>[a-f0-9]{32})/$', 'url', name='url'),
-    url(r'^url/(?P<md5sum>[a-f0-9]{32})/feed/$', 'url_feed', 
-        name='url_feed'),
+    url(r'^url/(?P<md5sum>[a-f0-9]{32})/feed/$', 'url_feed', name='url_feed'),
     
     # Search
     url(r'^search/$', 'search', name='search'),

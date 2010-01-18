@@ -80,34 +80,42 @@ def apply_user_filters_to_entry_tags (request, qs):
     return qs
 
 
-def constrained_entries (request, requested_user=None,
-    requested_group=None, tag_name=None, candidate_ids=[]):
+def constrained_entries (request, requested_user=None, requested_group=None, 
+    tag=None, candidate_ids=[]):
     """
     Start a base queryset of entries common to many pages.
     """
+    # Never show entries from inactive user accounts.
     qs = m.Entry.objects.exclude(user__is_active=False)
 
+    # Not sure we need this, but just in case.
     if candidate_ids:
         qs = qs.filter(id__in=candidate_ids)
         
-    # should work for anonymous and logged-in users both
+    # Should work for anonymous and logged-in users both
     if request.user != requested_user:
         # Non-private users
         # Note:  on the following, qs.exclude...=True blows up.
         qs = qs.filter(user__userprofile__is_private=False)
         # Non-private entries
         qs = qs.exclude(is_private=True)
-        if requested_user:
-            qs = qs.filter(user=requested_user)
 
+    if requested_user:
+        qs = qs.filter(user=requested_user)
+
+    # anyone can see public groups/entries; members can see private group/entries
     if requested_group:
-        # skipping for now
-        pass
+        if requested_group.get_profile().is_private:
+            # If they're not a member, don't let them see private stuff
+            if not request.user in group.user_set.all():
+                qs.exclude(is_private=True)
+        qs = qs.filter(groups__name=requested_group.name)
+    
+    # limit to this tag
+    if tag:
+        qs = qs.filter(tags__tag__name=tag.name)
 
-    if tag_name:
-        qs = qs.filter(tags__tag__name=tag_name)
-
-    # apply the following only to logged-in users
+    # apply filters for logged-in users
     if request.user.is_authenticated():
         qs = apply_user_filters_to_entries(request, qs)
 
@@ -365,10 +373,11 @@ def feed (request):
         
 def tag (request, tag_name):
     context = RequestContext(request)
-    qs = constrained_entries(request, tag_name=tag_name)
+    t = get_object_or_404(m.Tag, name=tag_name)
+    qs = constrained_entries(request, tag=t)
     paginator, page = pagify(request, qs)
     return render_to_response('index.html', {
-        'browse_type': 'tag', 'tag': tag_name,
+        'browse_type': 'tag', 'tag': t,
         'paginator': paginator, 'page': page, 
         'feed_url': reverse('tag_feed', args=[tag_name]),
         }, context)
@@ -376,7 +385,8 @@ def tag (request, tag_name):
 
 def tag_feed (request, tag_name):
     context = RequestContext(request)
-    qs = constrained_entries(request, tag_name=tag_name)
+    t = get_object_or_404(m.Tag, name=tag_name)
+    qs = constrained_entries(request, tag=t)
     paginator, page = pagify(request, qs)
     return atom_feed(page=page, 
         title='latest from everybody for tag "%s"' % tag_name,
@@ -442,11 +452,12 @@ def user_feed (request, user_name):
 def user_tag (request, user_name, tag_name=''):
     context = RequestContext(request)
     u = get_object_or_404(m.User, username=user_name)
-    qs = constrained_entries(request, requested_user=u, tag_name=tag_name)
+    t = get_object_or_404(m.Tag, name=tag_name)
+    qs = constrained_entries(request, requested_user=u, tag=t)
     paginator, page = pagify(request, qs)
     return render_to_response('index.html', {
         'paginator': paginator, 'page': page,
-        'browse_type': 'tag', 'browse_user': u, 'tag': tag_name,
+        'browse_type': 'tag', 'browse_user': u, 'tag': t,
         'feed_url': reverse('user_tag_feed', args=[user_name, tag_name]),
         }, context)
 
@@ -454,71 +465,62 @@ def user_tag (request, user_name, tag_name=''):
 def user_tag_feed (request, user_name, tag_name=''):
     context = RequestContext(request)
     u = get_object_or_404(m.User, username=user_name)
-    may_see, message = may_see_user(request, u)
-    if not may_see:
-        return render_to_response('index.html', {
-            'title': 'user %s' % user_name,
-            'message': message,
-            }, context)
-    qs = constrained_entries(request, requested_user=u, tag_name=tag_name)
+    t = get_object_or_404(m.Tag, name=tag_name)
+    qs = constrained_entries(request, requested_user=u, tag=t)
     paginator, page = pagify(request, qs)
     return atom_feed(page=page, 
-        title='latest from %s - tag "%s"' % (user_name, tag_name),
+        title='latest from %s - tag "%s"' % (user_name, tag.name),
         link=reverse('user_tag', args=[user_name, tag_name]))
     
     
 def user_tags (request, user_name):
-    """
-    Review all this user's tags.
-    """
     context = RequestContext(request)
     u = get_object_or_404(m.User, username=user_name)
+    # Er, leave this in here, now, not sure of the cleaner way to handle yet.
     may_see, message = may_see_user(request, u)
     if not may_see:
         return render_to_response('index.html', {
             'message': message,
             }, context)
-    
-    qs = m.EntryTag.count(user=u, request_user=request.user)
-    paginator, page = pagify(request, qs, num_items=250)
-    qs_alpha = m.EntryTag.count(user=u, request_user=request.user, order='alpha')
-    alpha_paginator, alpha_page = pagify(request, qs_alpha, num_items=250)
-    
+    qs = m.EntryTag.objects.filter(entry__user=u)
+    if request.user != u:
+        qs = qs.exclude(entry__is_private=True)
+        # I *think* we should do this here. You might be interested in some other
+        # user's tags on stuff that you haven't filtered out, right?
+        qs = apply_user_filters_to_entry_tags(request, qs)
+    qs = qs.values('tag__name').annotate(Count('tag'))
+    qs_count = qs.order_by('-tag__count')
+    count_paginator, count_page = pagify(request, qs_count)
+    qs_alpha = qs.order_by('tag__name')
+    alpha_paginator, alpha_page = pagify(request, qs_alpha)
     return render_to_response('tags.html', {
-        'paginator': paginator, 'page': page,
+        'paginator': count_paginator, 'page': count_page,
         'alpha_paginator': alpha_paginator, 'alpha_page': alpha_page,
-        'browse_user': u,
         }, context)
 
 
 def url (request, md5sum=''):
-    """
-    Review all entries from all users for this one URL.
-    """
     context = RequestContext(request)
     url = get_object_or_404(m.Url, md5sum=md5sum)
-    qs = standard_entries()
+    qs = constrained_entries(request)
     qs = qs.filter(url=url)
     paginator, page = pagify(request, qs)
     return render_to_response('index.html', {
         'view_hidden': False,
-        'title': "url %s" % url.value[:50],
         'paginator': paginator, 'page': page,
         'browse_type': 'url', 'browse_url': url,
         'feed_url': reverse('url_feed', args=[md5sum]),
         }, context)
 
-def url_feed (request):
-    """
-    Review all entries from all users for this one URL.
-    """
+
+def url_feed (request, md5sum=''):
     context = RequestContext(request)
-    url = get_object_or_404(m.Url, md5sum=md5sum)
-    qs = standard_entries()
-    qs = qs.filter(url=url)
+    u = get_object_or_404(m.Url, md5sum=md5sum)
+    qs = constrained_entries(request)
+    qs = qs.filter(url=u)
     paginator, page = pagify(request, qs)
     return atom_feed(page=page, title='latest for url',
-        link=reverse(url('url', args=[md5sum])))
+        link=reverse('url', args=[md5sum]))
 
     
 # Groups.
@@ -540,19 +542,9 @@ def group (request, group_name, format='html'):
     """
     context = RequestContext(request)
     group = get_object_or_404(m.Group, name=group_name)
-    may_see, message = may_see_group(request.user, group)
-    
-    if not may_see:
-        return render_to_response('index.html', {
-            'view_hidden': True,
-            'message': message,
-            }, context)
-    
-    qs = m.Entry.objects.filter(groups__name=group_name)
-    qs = qs.order_by('-date_created')
-    # If they're not a member, don't let them see private stuff
-    if not request.user in group.user_set.all():
-        qs.exclude(is_private=True)
+
+    qs = constrained_entries(request, requested_group=group)
+
     paginator, page = pagify(request, qs)
     if format == 'atom':
         return atom_feed(page=page, title='latest from group "%s"' % group_name,
@@ -711,22 +703,31 @@ class SolrPage:
     def previous_page_number(self):
         return self.number - 1
     
+    
+def fill_out_query (request, q=''):
+    # always encode first
+    full_query = q.encode('utf8') 
+    # don't show inactive user entries
+    full_query += ' is_active_user:true'
+    # check for logged-in user's own entries in case they're private
+    if request.user.is_authenticated():
+        full_query += ' (user:%s OR (is_private_entry:false AND is_private_user:false))' \
+            % request.user.username
+    else:
+        full_query += ' (is_private_entry:false AND is_private_user:false)'
+    return full_query
         
         
 def search (request):
-    """
-    Simple search, queries Solr behind the scenes.
-    
-    FIXME: a QueryConstraints.to_solr() please
-    """
     request.encoding = 'utf-8'
     context = RequestContext(request)
     q = request.GET.get('q', '')
     if q:
+        full_query = fill_out_query(request, q)
+        print 'full_query:', full_query
         s = solr_connection()
-        r = s.query(q.encode('utf8'), rows=50, sort='date_created', sort_order='asc',
-            **COMMON_FACET_PARAMS)
-        paginator = SolrPaginator(q.encode('utf8'), r)
+        r = s.query(full_query, rows=50, sort='date_created', sort_order='asc')
+        paginator = SolrPaginator(full_query, r)
         try:
             page = get_page(request, paginator)
         except:
@@ -735,23 +736,22 @@ def search (request):
             'q': q,
             'title': 'Search for "%s"' % q,
             'paginator': paginator, 'page': page,
-            'query_param': 'q=%s&' % q,
+            'query_param': 'q=%s&' % full_query,
             }, context)
     return render_to_response('index.html', context)
 
 
 def search_feed (request):
     """
-    FIXME: use constrained_entries()
     FIXME: doesn't do opensearch right
     """
     context = RequestContext(request)
     q = request.GET.get('q', '')
     if q:
         s = solr_connection()
-        r = s.query(q, rows=50, sort='date_created', sort_order='asc',
+        r = s.query(q.encode('utf8'), rows=50, sort='date_created', sort_order='asc',
             **COMMON_FACET_PARAMS)
-        paginator = SolrPaginator(q, r)
+        paginator = SolrPaginator(q.encode('utf8'), r)
         try:
             page = get_page(request, paginator)
             return atom_feed(page=page, 
