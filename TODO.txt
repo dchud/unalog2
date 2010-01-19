@@ -76,9 +76,9 @@ X Preserve tag order?
 
 X Update for Django 1.1
 
-  DRY in views
+X DRY in views
 
-  Privacy
+X Privacy
 
   Opensearch
 
@@ -87,9 +87,15 @@ X Inactive users
   Filters
     X execute
     X browse
-      search
+    - search
  	view
     edit
+
+  User prefs
+    privacy
+    link
+
+  settings_local.py
 
   Tag edits
 

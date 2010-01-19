@@ -14,7 +14,8 @@ from django.http import HttpResponsePermanentRedirect
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext, loader
 from django.utils import feedgenerator
-from solr import SolrConnection
+
+import solr
 
 from unalog2.base import models as m
 from unalog2.settings import SOLR_URL
@@ -125,7 +126,7 @@ def constrained_entries (request, requested_user=None, requested_group=None,
 
 
 def solr_connection ():
-    s = SolrConnection(settings.SOLR_URL)
+    s = solr.SolrConnection(settings.SOLR_URL)
     return s
 
 
@@ -726,17 +727,17 @@ def search (request):
         full_query = fill_out_query(request, q)
         print 'full_query:', full_query
         s = solr_connection()
-        r = s.query(full_query, rows=50, sort='date_created', sort_order='asc')
-        paginator = SolrPaginator(full_query, r)
+        results = s.query(full_query.encode('utf8'), rows=50, 
+            sort='date_created', sort_order='desc')
+        paginator = solr.SolrPaginator(results)
         try:
             page = get_page(request, paginator)
+            page.object_list = m.Entry.objects.filter(id__in=[r['id'] for r in page.object_list])
         except:
             page = None
         return render_to_response('index.html', {
-            'q': q,
-            'title': 'Search for "%s"' % q,
-            'paginator': paginator, 'page': page,
-            'query_param': 'q=%s&' % full_query,
+            'q': q, 'title': 'Search for "%s"' % q,
+            'page': page, 'query_param': 'q=%s&' % q,
             }, context)
     return render_to_response('index.html', context)
 
