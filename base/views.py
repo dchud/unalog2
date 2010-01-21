@@ -42,6 +42,7 @@ def standard_entries ():
 
 
 def apply_user_filters_to_entries (request, qs):
+    # Assume the user's already been authenticated.
     for f in request.user.filters.filter(is_active=True):
         if f.attr_name == 'user':
             if f.is_exact:
@@ -62,6 +63,7 @@ def apply_user_filters_to_entries (request, qs):
 
 
 def apply_user_filters_to_entry_tags (request, qs):
+    # Assume the user's already been authenticated.
     for f in request.user.filters.filter(is_active=True):
         if f.attr_name == 'user':
             if f.is_exact:
@@ -93,25 +95,29 @@ def constrained_entries (request, requested_user=None, requested_group=None,
     if candidate_ids:
         qs = qs.filter(id__in=candidate_ids)
         
-    # Should work for anonymous and logged-in users both
-    if request.user != requested_user:
-        # Non-private users
-        # Note:  on the following, qs.exclude...=True blows up.
-        qs = qs.filter(user__userprofile__is_private=False)
-        # Non-private entries
-        qs = qs.exclude(is_private=True)
+    # Unless this gets set to false, we'll limit private users and entries.
+    add_standard_restrictions = True
 
-    if requested_user:
-        qs = qs.filter(user=requested_user)
-
-    # anyone can see public groups/entries; members can see private group/entries
+    # /group/ and /user/ requests are mutually exclusive.
     if requested_group:
         if requested_group.get_profile().is_private:
-            # If they're not a member, don't let them see private stuff
-            if not request.user in group.user_set.all():
-                qs.exclude(is_private=True)
+            # If they're a member, let them see private stuff
+            if request.user in requested_group.user_set.all():
+                add_standard_restrictions = False
+            else:
+                # Since they're not, don't let them see anything
+                qs = qs.exclude(groups__name=requested_group.name)
         qs = qs.filter(groups__name=requested_group.name)
-    
+    elif requested_user:
+        if requested_user == request.user:
+            add_standard_restrictions = False
+        qs = qs.filter(user=requested_user)
+
+    if add_standard_restrictions:
+        qs = qs.exclude(is_private=True)
+        # Note:  on the following, qs.exclude...=True blows up.
+        qs = qs.filter(user__userprofile__is_private=False)
+
     # limit to this tag
     if tag:
         qs = qs.filter(tags__tag__name=tag.name)
@@ -199,9 +205,7 @@ def entry_new (request):
             
             # Save that sucker before adding many-to-manys
             new_entry.save()
-
-            tag_strs = tags_orig.split(' ')
-            new_entry.add_tags(tag_strs)
+            new_entry.add_tags(tags_orig)
 
             request.user.message_set.create(message='Saved your entry.')
             # If they had to confirm this, they don't need an edit screen again
@@ -274,8 +278,7 @@ def entry_edit (request, entry_id):
             # Remove original tags
             m.EntryTag.objects.filter(entry=e).delete()
             
-            tag_strs = tags_orig.split(' ')
-            e.add_tags(tag_strs)
+            e.add_tags(tags_orig)
             e.save()
             
             request.user.message_set.create(message='Saved your entry.')
@@ -398,7 +401,8 @@ def tags (request):
     context = RequestContext(request)
     qs = m.EntryTag.objects.filter(entry__user__userprofile__is_private=False)
     qs = qs.exclude(entry__is_private=True)
-    qs = apply_user_filters_to_entry_tags(request, qs)
+    if request.user.is_authenticated():
+        qs = apply_user_filters_to_entry_tags(request, qs)
     qs = qs.values('tag__name').annotate(Count('tag'))
     qs_count = qs.order_by('-tag__count')
     count_paginator, count_page = pagify(request, qs_count)
@@ -488,7 +492,8 @@ def user_tags (request, user_name):
         qs = qs.exclude(entry__is_private=True)
         # I *think* we should do this here. You might be interested in some other
         # user's tags on stuff that you haven't filtered out, right?
-        qs = apply_user_filters_to_entry_tags(request, qs)
+        if request.user.is_authenticated():
+            qs = apply_user_filters_to_entry_tags(request, qs)
     qs = qs.values('tag__name').annotate(Count('tag'))
     qs_count = qs.order_by('-tag__count')
     count_paginator, count_page = pagify(request, qs_count)
@@ -500,6 +505,18 @@ def user_tags (request, user_name):
         }, context)
 
 
+def user_filters (request, user_name):
+    context = RequestContext(request)
+    u = get_object_or_404(m.User, username=user_name)
+    if u == request.user:
+        qs = m.Filter.objects.filter(user=u).order_by('-date_created')
+        return render_to_response('filters.html', {
+            'filters': qs,
+            }, context)
+    # Otherwise, shouldn't be askin'.
+    return HttpResponseRedirect(reverse('index'))
+    
+    
 def url (request, md5sum=''):
     context = RequestContext(request)
     url = get_object_or_404(m.Url, md5sum=md5sum)
@@ -537,24 +554,26 @@ def may_see_group (request_user, group):
     return (may_see, message)
 
     
-def group (request, group_name, format='html'):
-    """
-    Basic view for a group.
-    """
+def group (request, group_name=''):
     context = RequestContext(request)
-    group = get_object_or_404(m.Group, name=group_name)
-
-    qs = constrained_entries(request, requested_group=group)
-
+    g = get_object_or_404(m.Group, name=group_name)
+    qs = constrained_entries(request, requested_group=g)
     paginator, page = pagify(request, qs)
-    if format == 'atom':
-        return atom_feed(page=page, title='latest from group "%s"' % group_name,
-            link='http://unalog.com/group/%s/' % group_name)
     return render_to_response('index.html', {
         'paginator': paginator, 'page': page,
-        'browse_type': 'group', 'browse_group': group, 
+        'browse_type': 'group', 'browse_group': g, 
         'feed_url': reverse('group_feed', args=[group_name]),
         }, context)
+        
+        
+def group_feed (request, group_name=''):
+    context = RequestContext(request)
+    g = get_object_or_404(m.Group, name=group_name)
+    qs = constrained_entries(request, requested_group=g)
+    paginator, page = pagify(request, qs)
+    return atom_feed(page=page, title='latest from group "%s"' % group_name,
+        link=reverse('group', args=[group_name]))
+    
     
 def group_tag (request, group_name, tag_name=''):
     """

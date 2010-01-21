@@ -7,7 +7,7 @@ from solr import SolrConnection
 from django.conf import settings
 from django.contrib.auth.models import User, Group
 from django.db import connection, models as m
-
+from django.forms import ModelForm
 
 
 class GroupProfile (m.Model):
@@ -42,14 +42,24 @@ class UserProfile (m.Model):
 
 
 class Filter (m.Model):
+    ATTR_NAME_CHOICES = [
+        ('user', 'user'),
+        ('tag', 'tag'),
+        ('url', 'url'),
+        ]
     user = m.ForeignKey(User, related_name='filters')
-    attr_name = m.CharField(max_length=20)
+    attr_name = m.CharField(max_length=20, choices=ATTR_NAME_CHOICES)
     value = m.CharField(max_length=50)
     is_exact = m.BooleanField(default=False)
     is_active = m.BooleanField(default=True)
     date_created = m.DateTimeField(auto_now_add=True, db_index=True)
     date_modified = m.DateTimeField(auto_now=True)
     
+
+class FilterForm (ModelForm):
+    class Meta:
+        model = Filter
+        
 
 # Bad chars for tags
 BAD_CHARS = """ ~`@#$%^&*()?\/,<>;\"'"""
@@ -153,12 +163,12 @@ class Entry (m.Model):
     class Meta:
         verbose_name_plural = 'entries'
         
-    def add_tags(self, tag_list=[]):
+    def add_tags(self, tags_orig=''):
         """
         Add one or more tags, in order.  Does nothing if there are none.
         """
         # Remove empty tags like ''
-        tag_list = [tag_str for tag_str in tag_list if not tag_str == '']
+        tag_list = unicode(tags_orig).split()
 
         # Remove bad tags, for bad chars or too lengthy
         for tag_str in tag_list:

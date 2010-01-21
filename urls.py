@@ -55,12 +55,18 @@ urlpatterns += patterns('unalog2.base.views',
     url(r'^user/(?P<user_name>[a-zA-Z0-9._]+)/tag/(?P<tag_name>[\w:._-]+)/feed/$', 
         'user_tag_feed', name='user_tag_feed'),
 
+    # Filters
+    url(r'^user/(?P<user_name>[a-zA-Z0-9._]+)/filters/$', 'user_filters', 
+        name='user_filters'),
+
     # Legacy url pattern - redirect.  No name assigned to discourage use.
     url(r'^person/(?P<user_name>.*)/$', 'person'),
 
-    # Groups... looks very familiar...
-    #url(r'^group/(?P<group_name>[a-zA-Z0-9._]+)/$', 'group', name='group'),
-    #url(r'^group/(?P<group_name>[a-zA-Z0-9._]+)/feed/$', 'group_feed'),
+    # Groups... 
+    url(r'^group/(?P<group_name>[a-zA-Z0-9._]+)/$', 'group', name='group'),
+    url(r'^group/(?P<group_name>[a-zA-Z0-9._]+)/feed/$', 'group_feed', 
+        name='group_feed'),
+    # Punt on these for now.
     #url(r'^group/(?P<group_name>[a-zA-Z0-9._]+)/tags/$', 'group_tags', 
     #    name='group_tags'),
     #url(r'^group/(?P<group_name>[a-zA-Z0-9._]+)/tag/(?P<tag_name>[a-zA-Z0-9:._-]+)/$', 

@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>Your filters</h2>
+
+<p>
+Sorry, haven't gotten to this one yet.  Add/edit/delete coming soon, but
+here's your old list in case you forgot. :)
+</p>
+
+<table id='filters' class='gentable' cellspacing='1'>
+    <tbody>
+        <tr>
+            <th width='15%'>Type</th>
+            <th width='40%'>Match value</th>
+            <th width='10%'>Exact Match?</th>
+            <th width='10%'>Enable?</th>
+            <th width='25%'>Actions</th>
+        </tr>
+        {% for f in filters %}
+        <tr>
+            <form method='POST' action='#'>
+            <td>{{ f.attr_name }}</td>
+            <td>{{ f.value }}</td>
+            <td>{{ f.is_exact }}</td>
+            <td>{{ f.is_active }}</td>
+            <td>[update] [delete]</td>
+            </form>
+        </tr>
+        {% endfor %}
+        <tr>
+            <td colspan='5'>add a new one [save]</td>
+        </tr>
+    </tbody>
+</table>
+
+
+{% endblock %}
