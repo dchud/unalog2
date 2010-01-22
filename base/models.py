@@ -7,6 +7,7 @@ from solr import SolrConnection
 from django.conf import settings
 from django.contrib.auth.models import User, Group
 from django.db import connection, models as m
+from django.db.models.signals import post_save
 from django.forms import ModelForm
 
 
@@ -24,11 +25,20 @@ class GroupProfile (m.Model):
 
 # Duckpunch Group to offer up profile like User's get_profile just
 # because it looks weird to use User.get_profile and Group.profile
-def get_profile(group):
+def get_profile (group):
     return group.profile
     
 Group.get_profile = get_profile
 
+
+# We need a signal callback to create UserProfiles automatically, since new
+# users don't automatically get one, but everyone has to have one.
+def user_post_save_create_profile (sender, **kwargs):
+    if kwargs['created']:
+        up = UserProfile(user=kwargs['instance'])
+        up.save()
+    
+post_save.connect(user_post_save_create_profile, User)
 
 class UserProfile (m.Model):
     user = m.OneToOneField(User)
@@ -167,7 +177,7 @@ class Entry (m.Model):
         """
         Add one or more tags, in order.  Does nothing if there are none.
         """
-        # Remove empty tags like ''
+        # split up, being sure to clear out whitespace, however many bytes
         tag_list = unicode(tags_orig).split()
 
         # Remove bad tags, for bad chars or too lengthy

@@ -744,7 +744,6 @@ def search (request):
     q = request.GET.get('q', '')
     if q:
         full_query = fill_out_query(request, q)
-        print 'full_query:', full_query
         s = solr_connection()
         results = s.query(full_query.encode('utf8'), rows=50, 
             sort='date_created', sort_order='desc')
