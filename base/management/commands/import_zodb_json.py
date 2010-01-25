@@ -13,7 +13,8 @@ from django.core.management.base import BaseCommand, CommandError
 from django.contrib.auth.models import User, Group
 from django.db import connection
 
-from solr import SolrConnection, UTC, utc_from_string
+from solr import SolrConnection
+from solr.core import UTC, utc_from_string
 
 from unalog2.base import models as m
 from unalog2.settings import SOLR_URL

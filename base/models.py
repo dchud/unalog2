@@ -182,16 +182,13 @@ class Entry (m.Model):
 
         # Remove bad tags, for bad chars or too lengthy
         for tag_str in tag_list:
-            # Keep 'em cleanish
-            if RE_BAD_CHARS.search(tag_str):
-                tag_list.remove(tag_str)
-
-            # Keep 'em shortish
-            if len(tag_str) > 30:
-                tag_list.remove(tag_str)
-
             # Remove repeats
             while tag_list.count(tag_str) > 1:
+                tag_list.remove(tag_str)
+
+            # Keep 'em cleanish and shortish
+            if RE_BAD_CHARS.search(tag_str) \
+                or len(tag_str) > 30:
                 tag_list.remove(tag_str)
         
         for i in range(len(tag_list)):
