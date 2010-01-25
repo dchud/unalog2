@@ -127,7 +127,7 @@ Set up unalog config.  In the directory where you unwrap unalog:
 
     You should be able to see unalog up and running.
 
-Finally, to test the whole system:
+Finally, to quickly test the whole system:
 
     - log in as the superuser you created
     - visit the /bookmarklet/ path (link is in header)
@@ -141,4 +141,15 @@ Finally, to test the whole system:
     - if the answer to the last two questions was 'yes', you're up
       and running!
 
-    
+For apache2+mod_wsgi deployments:
+
+    Add the content of $UNALOG2/base/apache.conf to an appropriate
+    /etc/apache2/sites-available.  Be sure to set the root path in 
+ 	all the obvious places.  Be sure this config will align with what
+ 	you set UNALOG_URL to in unalog2's settings.py.
+
+	Set the local path to the parent of the unalog2 dir inside of 
+	$UNALOG2/base/apache.wsgi.
+	
+	Restart apache2 and visit your site.
+	

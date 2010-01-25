@@ -101,7 +101,7 @@ X Inactive users
 
 X Groups - entry, etc.
 
-  wsgi config
+X wsgi config
 
   favicon.ico
 
