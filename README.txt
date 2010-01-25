@@ -24,6 +24,7 @@ Python 2.5.2/2.6.4
 Django 1.1.1
 PostgreSQL 8.4
 psycopg2 2.0.13
+Java 6
 Solr 1.3
 solrpy 0.9
 simplejson 2.0.9
@@ -41,10 +42,14 @@ dedicated hosting.  I run it with apache2 and mod_wsgi on ubuntu 8.04.
 
 Install ubuntu packages (and dependencies) for:
 
-    python ipython python-setuptools
+    python ipython python-setuptools simplejson
     postgresql-8.3 postgresql-client-8.3 python-psycopg2
-    solr-tomcat5.5
+    sun-java6-jdk sun-java6-bin solr-tomcat5.5
     libapache2-mod-wsgi 
+
+The solr-tomcat5.5 package might try to bring in openjdk.  That might
+work but I've only tested with sun-java6-jdk.  Use 
+update-java-alternatives to ensure the right jre is used.
 
 Set the default encoding of your python installation to 'utf8'.  I 
 don't know the 100% "right" way to do this these days, but in my
@@ -65,7 +70,7 @@ it's right when you can do this and get 'utf8':
     >>> sys.getdefaultencoding()
     'utf8'
 
-Install python dependencies:
+Install non-.deb python dependencies:
 
     from tarball:   Django 1.1.1
     w/easy_install: solrpy 0.9 (and iso8601, if import from zodb install)

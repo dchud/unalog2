@@ -101,6 +101,12 @@ X Inactive users
 
 X Groups - entry, etc.
 
+  wsgi config
+
+  favicon.ico
+
+  robots.txt  
+
   Reaper 
 
   Why do atom feeds use tag urls?
