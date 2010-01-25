@@ -177,9 +177,13 @@ class Entry (m.Model):
         """
         Add one or more tags, in order.  Does nothing if there are none.
         """
-        # split up, being sure to clear out whitespace, however many bytes
-        tag_list = unicode(tags_orig).split()
-
+        # the import script sends a list, not a string, so check type
+        if tags_orig.__class__ == u''.__class__:
+            # split up, being sure to clear out whitespace
+            tag_list = tags_orig.split()
+        else:
+            tag_list = tags_orig
+            
         # Remove bad tags, for bad chars or too lengthy
         for tag_str in tag_list:
             # Remove repeats
