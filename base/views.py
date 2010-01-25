@@ -64,6 +64,7 @@ def apply_user_filters_to_entries (request, qs):
 
 def apply_user_filters_to_entry_tags (request, qs):
     # Assume the user's already been authenticated.
+    # FIXME: DRY.
     for f in request.user.filters.filter(is_active=True):
         if f.attr_name == 'user':
             if f.is_exact:
@@ -130,10 +131,12 @@ def constrained_entries (request, requested_user=None, requested_group=None,
     return qs
 
 
+# Hmm, what's the best way to do this?  Punt for now and do 
+# something simple.
+SOLR_CONNECTION = solr.SolrConnection(settings.SOLR_URL)
 
 def solr_connection ():
-    s = solr.SolrConnection(settings.SOLR_URL)
-    return s
+    return SOLR_CONNECTION
 
 
 def get_page (request, paginator):
