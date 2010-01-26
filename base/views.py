@@ -162,13 +162,6 @@ def pagify (request, qs, num_items=50):
     return paginator, page
 
 
-def old_stack_link (request):
-    """
-    Redirect from old bookmarklet path.
-    """
-    return HttpResponseRedirect(reverse('entry_new'))
-    
-
 @login_required
 def entry_new (request):
     """
