@@ -215,7 +215,8 @@ class Entry (m.Model):
     @property
     def solr_doc(self):
         """
-        Returns a dict representation suitable for solr indexing.
+        Returns a dict representation suitable for solr indexing.  Note limits
+        on how much text data is allowed to be indexed for comment and content.
         """
         # Weird date machinations are for varying index-time date value states
         date_created = self.date_created
@@ -233,8 +234,8 @@ class Entry (m.Model):
             'is_active_user': self.user.is_active,
             'title': self.title,
             'url': self.url.value,
-            'comment': self.comment,
-            'content': self.content,
+            'comment': self.comment[:2000], # not indexing more than this
+            'content': self.content[:50000], # not indexing more than this
             'date_created': date_created,
             #'date_modified': self.date_modified,
             'tag': [entry_tag.tag.name for entry_tag in self.tags.all()],

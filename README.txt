@@ -42,9 +42,9 @@ dedicated hosting.  I run it with apache2 and mod_wsgi on ubuntu 8.04.
 
 Install ubuntu packages (and dependencies) for:
 
-    python ipython python-setuptools simplejson
+    python ipython python-setuptools python-simplejson
     postgresql-8.3 postgresql-client-8.3 python-psycopg2
-    sun-java6-jdk sun-java6-bin solr-tomcat5.5
+    sun-java6-jdk solr-tomcat5.5
     libapache2-mod-wsgi 
 
 The solr-tomcat5.5 package might try to bring in openjdk.  That might
