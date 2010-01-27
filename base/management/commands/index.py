@@ -41,19 +41,26 @@ class Command(BaseCommand):
             entries = entries.filter(user__username=user)
         docs = []
         print 'entry count:', entries.count()
-        for entry in entries:
-            counter += 1
-            docs.append(entry.solr_doc)
-            if len(docs) == MAX_DOCS_PER_ADD:
-                try:
-                    self.solr.add_many(docs)
-                except:
-                    print 'BAD RECORD:', [d['id'] for d in docs]
-                docs = []
-                reset_queries()
-                if counter % (COMMIT_FREQUENCY * MAX_DOCS_PER_ADD) == 0:
-                    print 'committing at count:', counter
-                    self.solr.commit()
+        SLICE_SIZE = MAX_DOCS_PER_ADD * COMMIT_FREQUENCY 
+        slices = [x for x in range(entries.count()) \
+            if x % SLICE_SIZE == 0]
+        for s in slices:
+            print 'indexing %s to %s...' % (s, s+SLICE_SIZE)
+            entry_slice = entries[s:s+SLICE_SIZE]
+            for entry in entry_slice:
+                counter += 1
+                docs.append(entry.solr_doc)
+                if len(docs) == MAX_DOCS_PER_ADD:
+                    try:
+                        self.solr.add_many(docs)
+                    except:
+                        print 'BAD RECORD:', [d['id'] for d in docs]
+                    del(docs)
+                    docs = []
+                    reset_queries()
+                    if counter % (COMMIT_FREQUENCY * MAX_DOCS_PER_ADD) == 0:
+                        print 'committing at count:', counter
+                        self.solr.commit()
         # Don't miss the leftovers
         self.solr.add_many(docs)
                 
