@@ -3,6 +3,8 @@
 {% block content %}
 <h2>Bookmarklets</h2>
 
+<h3>For your browser</h3>
+
 <p>
 Use the bookmarklet to add links; drag it from below
 into your personal toolbar.  Then, whenever you visit a page
@@ -12,6 +14,19 @@ you want to add here, click the bookmarklet.
 <p>
 This bookmarklet: &gt;<a id='bookmarklet' href="javascript:void(z=document.createElement('script'));void(z.language='javascript');void(z.type='text/javascript');void(z.src='{{site_url}}/indexing.js');void(document.getElementsByTagName('head')[0].appendChild(z));">unalog!</a>&lt;
 will send your browser window and its page content right into unalog.
+</p>
+
+
+<h3>For your smartphone</h3>
+
+<p>
+Copy the text below and paste it into the URL part of a new 
+bookmark in your device.  Give it the title "unalog!" or whatever
+strikes your fancy.
+</p>
+
+<p style='border:3px #999 solid;margin-left:1em;margin-right:14em;padding:.5em;background-color:#eee'>
+javascript:void(z=document.createElement('script'));void(z.language='javascript');void(z.type='text/javascript');void(z.src='{{site_url}}/indexing.js');void(document.getElementsByTagName('head')[0].appendChild(z));
 </p>
 
 {% endblock %}
