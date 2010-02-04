@@ -16,8 +16,8 @@ from django.db import connection
 from solr import SolrConnection
 from solr.core import UTC, utc_from_string
 
-from unalog2.base import models as m
-from unalog2.settings import SOLR_URL
+from base import models as m
+from settings import SOLR_URL
 
 
 

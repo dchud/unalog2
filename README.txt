@@ -20,9 +20,9 @@ REQUIREMENTS
 These are the versions of dependencies used for development and deployment at
 unalog.com.
 
-Python 2.5.2/2.6.4
+Python 2.5.2
 Django 1.1.1
-PostgreSQL 8.4
+PostgreSQL 8.3
 psycopg2 2.0.13
 Java 6
 Solr 1.3

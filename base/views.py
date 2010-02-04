@@ -17,8 +17,8 @@ from django.utils import feedgenerator
 
 import solr
 
-from unalog2.base import models as m
-from unalog2.settings import SOLR_URL
+from base import models as m
+from settings import SOLR_URL
 
 class EntryForm (forms.Form):
     url = forms.URLField(required=True, label='URL')

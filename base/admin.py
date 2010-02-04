@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from unalog2.base import models as m
+from base import models as m
 
 class GroupProfileAdmin(admin.ModelAdmin):
     list_display = ['group', 'desc', 'is_private', 'date_created']

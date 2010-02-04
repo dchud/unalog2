@@ -6,7 +6,7 @@ from django.core.management.base import BaseCommand, CommandError
 
 from solr import SolrConnection
 
-from unalog2.settings import SOLR_URL
+from settings import SOLR_URL
 
 class Command(BaseCommand):
     user_option = optparse.make_option('--user',

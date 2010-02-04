@@ -1,7 +1,7 @@
 from django.conf.urls.defaults import *
 from django.contrib import admin
 
-from unalog2.settings import UNALOG_ROOT
+from settings import UNALOG_ROOT
 
 admin.autodiscover()
 
