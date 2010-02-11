@@ -29,18 +29,6 @@ class EntryForm (forms.Form):
     content = forms.CharField(required=False, widget=forms.Textarea)
 
 
-def standard_entries ():
-    """
-    Start a base queryset of entries common to many pages.
-    """
-    qs = m.Entry.objects.exclude(user__is_active=False)
-    # Note:  on the following, qs.exclude...=True blows up.
-    qs = qs.filter(user__userprofile__is_private=False)
-    qs = qs.exclude(is_private=True)
-    qs = qs.order_by('-date_created')
-    return qs
-
-
 def apply_user_filters_to_entries (request, qs):
     # Assume the user's already been authenticated.
     for f in request.user.filters.filter(is_active=True):
@@ -625,102 +613,8 @@ COMMON_FACET_PARAMS = {
     }        
 
 
-class SolrPaginator:
-    """
-    Take a solr.py result and return a Django paginator-like object.
-    """
-    
-    def __init__(self, q, result):
-        self.q = q
-        self.result = result
         
-    @property
-    def count(self):
-        return int(self.result.numFound)
-
-    @property
-    def num_pages(self):
-        if self.count == 0:
-            return 0
-        real_num = (self.count * 1.0) / len(self.result.results)
-        return int(math.ceil(real_num))
-            
-    @property
-    def page_range(self):
-        """List the index numbers of the available result pages."""
-        if self.count == 0:
-            return []
-        # Add one because range is right-side exclusive
-        return range(1, self.num_pages + 1)
-
-    def _fetch_page(self, start=0):
-        """Retrieve a new result response from Solr."""
-        s = solr_connection()
-        new_results = s.query(self.q, start=start)
-        return new_results
-        
-    def page(self, page_num=1):
-        """Return the requested Page object"""
-        try:
-            int(page_num)
-        except:
-            raise 'PageNotAnInteger'
-        
-        if page_num not in self.page_range:
-            raise 'EmptyPage', 'That page does not exist.'
-
-        # Page 1 starts at 0; take one off before calculating
-        start = (page_num - 1) * len(self.result.results)
-        new_result = self._fetch_page(start=start)
-        return SolrPage(new_result.results, page_num, self)
-    
-
-class SolrPage:
-    """A single Paginator-style page."""
-    
-    def __init__(self, result, page_num, paginator):
-        self.result = result
-        self.number = page_num
-        self.paginator = paginator
-        
-    @property
-    def object_list(self):
-        qs = m.Entry.objects.filter(id__in=[r['id'] for r in self.result])
-        return qs
-    
-    def has_next(self):
-        if self.number < self.paginator.num_pages:
-            return True
-        return False
-            
-    def has_previous(self):
-        if self.number > 1:
-            return True
-        return False
-            
-    def has_other_pages(self):
-        if self.paginator.num_pages > 1:
-            return True
-        return False
-    
-    def start_index(self):
-        # off by one because self.number is 1-based w/django,
-        # but start is 0-based in solr 
-        return (self.number - 1) * len(self.result)
-        
-    def end_index(self):
-        # off by one because we want the last one in this set, 
-        # not the next after that, to match django paginator
-        return self.start_index() + len(self.result) - 1
-        
-    def next_page_number(self):
-        return self.number + 1
-            
-    def previous_page_number(self):
-        return self.number - 1
-    
-    
-def fill_out_query (request, q=''):
+def _fill_out_query (request, q=''):
     # always encode first
     full_query = q.encode('utf8') 
     # don't show inactive user entries
@@ -739,7 +633,7 @@ def search (request):
     context = RequestContext(request)
     q = request.GET.get('q', '')
     if q:
-        full_query = fill_out_query(request, q)
+        full_query = _fill_out_query(request, q)
         s = solr_connection()
         results = s.query(full_query.encode('utf8'), rows=50, 
             sort='date_created', sort_order='desc')
