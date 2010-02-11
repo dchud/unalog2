@@ -16,7 +16,7 @@ h3 {
 }
 
 a:hover {
-        text-decoration: underline;
+    text-decoration: underline;
 }
 
 #contentwrapper {
@@ -32,7 +32,7 @@ a:hover {
 	background: #555;
 	color: #fff;
 	padding: 10px;
-        font-size: small;
+    font-size: small;
 }
 
 #header h1 {
@@ -41,12 +41,12 @@ a:hover {
 }
 
 #header a {
-        color: #fff;
-        font-size: small;
+    color: #fff;
+    font-size: small;
 }
 
 .bold {
-        font-weight: bold;
+    font-weight: bold;
 }
 
 #menu {
@@ -83,34 +83,15 @@ a:hover {
 }
 
 form.search {
-        margin: 0;
-        padding: 3px 0;
-        color: #fff;
-        font-size: small;
-        padding-right: 1em;
+    margin: 0;
+    padding: 3px 0;
+    color: #fff;
+    font-size: small;
+    padding-right: 1em;
 }
 
 form.search a {
-        color: #fff;
-}
-
-#quixote br#quixoteform {
-    padding: 5px;
-}
-
-.relevance-box {
-    border: 1px solid #666;
-    background-color: #eee;
-    padding: 0px;
-    margin-top: .55em;
-    margin-left: 1em;
-    float: left;
-    width: 50px;
-}
-
-.relevance {
-    background-color:  #888;
-    height:  5px;
+    color: #fff;
 }
 
 #messages {
@@ -120,45 +101,6 @@ form.search a {
 
 #content {
 	padding: 10px;
-}
-
-#content dd {
-	margin-bottom: 5px;
-}
-
-dd blockquote {
-	margin-top: 1px;
-	margin-bottom: 1px;
-}
-
-dd blockquote p {
-	margin-top: 0;
-}
-
-div.widget {
-	clear: both;
-	padding-top: 8px;
-}
-
-div.widget div.title {
-	float: left;
-	width: 17%;
-	font-weight: bold;
-	text-align: right;
-}
-
-div.widget div.content {
-	float: right;
-	width: 80%;
-	text-align: left;
-} 
-
-div.widget div.error {
-	color: red;
-}
-
-span.required {
-	color: red;
 }
 
 input, textarea, select {
@@ -177,50 +119,6 @@ input[type=submit], input[type=button] {
 
 input[type=submit]:hover, input[type=button]:hover { 
 	background: #ccb;
-}
-
-.sidebox {
-	border: 1px solid #777;
-	width: 200px;
-	float: right;
-	margin: 10px;
-	clear: right;
-	background: #f0f0f0;
-}
-
-.sidebox h2 {
-	margin: 0;
-	padding: 5px;
-	color: #fff;
-	background: #777;
-	font-size: medium;
-}
-
-.sidebox h3 {
-	margin: 0;
-	padding: 5px;
-	font-size: medium;
-	font-weight: bold;
-}
-
-.sidebox p {
-	margin: 5px;
-}
-
-.sidebox form {
-	margin: 0;
-}
-
-.sidebox ul {
-	list-style: circle outside;
-	margin: 5px 0px;
-	padding-left: 1.5em;
-	padding-bottom: 1em;
-}
-
-.sidebox em {
-	font-style: normal;
-	font-weight: bold;
 }
 
 .gentable {
@@ -256,20 +154,6 @@ input[type=submit]:hover, input[type=button]:hover {
 
 #tags {
     width: 100%;
-}
-
-#tags .col1 {
-    text-align: right;
-    width: 45%;
-}
-
-#tags .col2 {
-    text-align: left;
-    width: 45%;
-}
-
-.tagcount {
-    font-size: 60%;
 }
 
 textarea {
@@ -333,107 +217,37 @@ ul#pagination li a:hover {
 	padding: 0;
 }
 
-/* Timeline */
-/* these properties shamelessly borrowed nearly verbatim from trac project */
-#timeline-hdr {
-    display: inline;
+.entryset-date {
+    margin-bottom: 2em;
 }
 
-#timeline-prefs {
-    background: #f7f7f0;
-    border: 1px outset #998;
-    float: right;
-    font-size: 9px;
-    padding: 1em;
-    margin-left: 1em;
-    margin-bottom: 1em;
-    white-space: nowrap;
-}
-
-#timeline-prefs input {
-    font-size: 9px;
-}
-
-#timeline-prefs-checks { }
-
-#timeline-prefs-btns {
-    text-align: right;
-    margin-top: 1em;
-}
-
-.timeline-daysep {
-    font-size: 100%;
-    border-bottom: 1px solid #d7d7d7;
-    background: #f5f5f5;
-    color: #333333;
-    clear: both;
-}
-
-.tl-day {
+.entry {
     line-height: 130%;
-    margin-left: 1em;
-    margin-bottom: .5em;
+    margin: 0 0 .8em 1em;
 }
 
-.tl-day-relevance {
-    line-height: 130%;
-    margin-left: 82px;
-    margin-bottom: .5em;
-}
-
-a.tl-item {
+.entry-comment {
+    /*
     display: block;
-    color: #000;
-    padding: 1px 0;
-    margin: 1px;
-    border: none;
-}
-
-a.tl-item:hover {
-    background-color: #eed;
-    color: #000;
-}
-
-.tl-item-time {
-    color: #555;
-    font-size: small;
-}
-
-.tl-item-title {
-    color: #777;
-    font-size: small;
-}
-
-.tl-item-links {
-    color: #777;
-    font-size: small;
-    margin-left: 1.3em;
-}
-
-.tl-item-link {
-    border-bottom: 1px dotted #bbb;
-    color: #b00;
+    */
     font-weight: normal;
-    text-decoration: none;
+    width: 60%;
 }
 
-.description {
-    display: block;
-    margin-left: 1.3em;
-    font-size: 80%;
-    font-weight: normal;
+.entry-link {
+    font-size: large;
+}
+
+.entry-metadata {
+    margin: 0.3em 0 0 1.2em;
+    font-size: small;
+}
+
+.entry-links {
+    color: #777;
 }
 
 .bookmarklet {
     border: 1px #222;
     padding: .5em;
-}
-
-.tl-item-icon {
-    vertical-align: text-top;
-    margin: 0;
-}
-
-.Z3988 {
-    display: none;
 }

@@ -1,61 +1,61 @@
-<div class='xfolkentry tl-day'>
-    <span class='tl-item-time'>{{ entry.date_created|date:"H:i" }}</span>
-    <span class='tl-item-title'>
-        by <a href='{% url user entry.user.username %}'>
-    
-    <span class='user{% ifequal entry.user user %} bold{% endifequal %}'>{{ entry.user.username }}</span>
-    </a> -
+<div class='entry xfolkentry'>
 
-    <a class='taggedlink' href='{{ entry.url.value }}'>
+    <a class='entry-url taggedlink' href='{{ entry.url.value }}'>
     {% ifequal entry.user user %}<span class='bold'>{% endifequal %}
     {{ entry.title }}
     {% ifequal entry.user user %}</span>{% endifequal %}
     </a> <br />
-    </span>
 
-    <div class='tl-item-links'>
-    {% ifequal entry.user user %}
-        [<a href='{% url entry_edit entry.id %}'><span class='bold'>edit</span></a>]
-        [<a href='{% url entry_delete entry.id %}'><span class='bold'>delete</span></a>]
-    {% endifequal %}
+    <div class='entry-metadata'>
 
-    {% with entry.tags.count as tag_count %}
-        {% ifnotequal tag_count 0 %}
-            {% with entry.tags.all as entry_tags %}
-            with tag{{ tag_count|pluralize }}
-                {% for entry_tag in entry_tags %}
-        <a class='tag' rel='tag' href='{% url user_tag entry.user.username entry_tag.tag.name %}'>{{ entry_tag.tag.name }}</a>
-                {% endfor %}
-            {% endwith %}
-        {% endifnotequal %}
-    {% endwith %}
-
-    {% ifnotequal 0 entry.groups.count %}
-        in group{{ entry.groups.count|pluralize }}
-    {% endifnotequal %}
-    
-    {% for g in entry.groups.all %}
-        {% if g.get_profile.is_private %}
-            {% for u in g.user_set.all %}
-                {% ifequal user u %}
-            <a href='{% url group g.name %}'>{{ g.name }}</a>
-                {% endifequal %}
-            {% endfor %}
-        {% else %}
-            <a href='{% url group g.name %}'>{{ g.name }}</a>
+        {% if entry.comment %}
+        <div class='entry-comment description'>
+            {{ entry.comment }}
+        </div>
         {% endif %}
-    {% endfor %}
 
-    {% ifnotequal entry.other_count 0 %}
-        also by <a href='{% url url entry.url.md5sum %}'>{{ entry.other_count }} other{{ entry.other_count|pluralize }}</a>
-    {% endifnotequal %}
+        <span class='entry-time'>{{ entry.date_created|date:"H:i" }} - </span>
+
+        <a class='entry-user' href='{% url user entry.user.username %}'>{{ entry.user.username }}</a> 
+
+        {% with entry.tags.count as tag_count %}
+            {% ifnotequal tag_count 0 %}
+                -
+                {% with entry.tags.all as entry_tags %}
+                    {% for entry_tag in entry_tags %}
+            <a class='tag' rel='tag' href='{% url user_tag entry.user.username entry_tag.tag.name %}'>{{ entry_tag.tag.name }}</a>
+                    {% endfor %}
+                {% endwith %}
+            {% endifnotequal %}
+        {% endwith %}
+
+        {% ifnotequal 0 entry.groups.count %}
+            in group{{ entry.groups.count|pluralize }}
+        {% endifnotequal %}
+    
+        {% for g in entry.groups.all %}
+            {% if g.get_profile.is_private %}
+                {% for u in g.user_set.all %}
+                    {% ifequal user u %}
+                <a href='{% url group g.name %}'>{{ g.name }}</a>
+                    {% endifequal %}
+                {% endfor %}
+            {% else %}
+                <a href='{% url group g.name %}'>{{ g.name }}</a>
+            {% endif %}
+        {% endfor %}
+
+        {% ifnotequal entry.other_count 0 %}
+            - and <a href='{% url url entry.url.md5sum %}'>{{ entry.other_count }} other{{ entry.other_count|pluralize }}</a>
+        {% endifnotequal %}
+
+        {% ifequal entry.user user %}
+            <div class='entry-edit'>
+                [<a href='{% url entry_edit entry.id %}'><span class='bold'>edit</span></a>]
+                [<a href='{% url entry_delete entry.id %}'><span class='bold'>delete</span></a>]
+            </div>
+        {% endifequal %}
+
     </div>
-
-
-    {% if entry.comment %}
-    <div class='description'>
-        {{ entry.comment }}
-    </div>
-    {% endif %}
 
 </div>

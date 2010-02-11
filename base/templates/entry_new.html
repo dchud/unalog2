@@ -3,17 +3,19 @@
 {% block content %}
 
 {% if old_entries %}
-<h2>Hey!  You've saved this before.</h2>
-	{% regroup old_entries by date_created.date as date_groups %}
-	{% for date_group in date_groups %}
-	   	<h2 class='timeline-daysep'>{{ date_group.grouper|date:"l, Y-m-d" }}</h2>
-		{% for entry in date_group.list %}
-			{% include "entry.html" %}
-		{% endfor %}       
-	{% endfor %}
-<h2>Save it again if you like.</h2>
+    <div id="entryset">
+        <h2>Hey!  You've saved this before.</h2>
+        	{% regroup old_entries by date_created.date as date_groups %}
+        	{% for date_group in date_groups %}
+        	   	<h2>{{ date_group.grouper|date:"l, Y-m-d" }}</h2>
+        		{% for entry in date_group.list %}
+        			{% include "entry.html" %}
+        		{% endfor %}       
+        	{% endfor %}
+        <h2>Save it again if you like.</h2>
+    </div>
 {% else %}
-<h2>Add a link</h2>
+    <h2>Add a link</h2>
 {% endif %}
 
 

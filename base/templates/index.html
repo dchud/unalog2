@@ -47,14 +47,14 @@
 
 	{% regroup page.object_list|dictsortreversed:"date_created" by date_created.date as date_groups %}
 	{% for date_group in date_groups %}
-	
-		<h2>{{ date_group.grouper|date:"l, Y-m-d" }}<h2>
+	    <div class='entryset-date'>
+    		<h3>{{ date_group.grouper|date:"Y-m-d - l" }}</h3>
 		
-        {% for entry in date_group.list|dictsortreversed:"date_created.time" %}
-			{% include "entry.html" %}
-           {% endfor %}       
-
-       {% endfor %}
+            {% for entry in date_group.list|dictsortreversed:"date_created.time" %}
+    			{% include "entry.html" %}
+            {% endfor %}       
+        </div>
+    {% endfor %}
 
    </div>
 
