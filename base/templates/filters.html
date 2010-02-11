@@ -20,17 +20,19 @@ here's your old list in case you forgot. :)
         </tr>
         {% for f in filters %}
         <tr>
-            <form method='POST' action='#'>
-            <td>{{ f.attr_name }}</td>
-            <td>{{ f.value }}</td>
-            <td>{{ f.is_exact }}</td>
-            <td>{{ f.is_active }}</td>
-            <td>[update] [delete]</td>
+            <form method='POST' action='{% user_filter_edit f.id %}'>
+                <td>{{ f.attr_name }}</td>
+                <td>{{ f.value }}</td>
+                <td>{{ f.is_exact }}</td>
+                <td>{{ f.is_active }}</td>
+                <td>[update] [delete]</td>
             </form>
         </tr>
         {% endfor %}
         <tr>
-            <td colspan='5'>add a new one [save]</td>
+            <form method='POST' action='#'>
+                <td>foo</td>
+            </form>
         </tr>
     </tbody>
 </table>
