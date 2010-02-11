@@ -18,7 +18,7 @@ urlpatterns = patterns('',
 
     )
 
-urlpatterns += patterns('unalog2.base.views',
+urlpatterns += patterns('base.views',
     # Site-wide
     url(r'^$', 'index', name='index'),
     url(r'^feed/$', 'feed', name='feed'),
