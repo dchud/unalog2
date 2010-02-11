@@ -55,8 +55,8 @@ urlpatterns += patterns('base.views',
         'user_tag_feed', name='user_tag_feed'),
 
     # Filters
-    url(r'^filter/$', 'user_filter', name='user_filter'),
-    url(r'^filter/new', 'user_filter_new', name='user_filter_new'),
+    url(r'^filter/$', 'filter_index', name='filter_index'),
+    url(r'^filter/new/$', 'filter_new', name='filter_new'),
 
     # Legacy url pattern - redirect.  No name assigned to discourage use.
     url(r'^person/(?P<user_name>.*)/$', 'person'),

@@ -22,7 +22,7 @@
 							[<a href='{% url user user.username %}'>entries</a>]
 	                        [<a href='{% url user_tags user.username %}'>tags</a>]
 							[<a href='{% url bookmarklet %}'>bookmarklet</a>]
-	                        [<a href='{% url user_filter %}'>filters</a>]
+	                        [<a href='{% url filter_index %}'>filters</a>]
 							{% if user.is_staff %}
 	                        [<a href='/admin/'>admin</a>]
 	           				{% endif %}
@@ -73,11 +73,11 @@
 		<div id='content'>
 			{% if messages %}
 			<div id='messages'>
-				<ul>
 				{% for message in messages %}
-					<li>{{ message }}</li>
+				<p>
+					{{ message }}
+				</p>
 				{% endfor %}
-				</ul>
 			</div>
 			{% endif %}
 

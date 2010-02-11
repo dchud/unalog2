@@ -14,7 +14,7 @@ Private entries will only be visible to you (see "my entries")
 and other members of private groups to which they are added.
 </p>
 
-<form action='/entry/{{ entry.id }}/edit/' method='POST'>
+<form action='{% url entry_edit entry.id %}' method='POST'>
 	<table>
 		<tbody>
 			<tr>

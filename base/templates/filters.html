@@ -5,33 +5,56 @@
 <h2>Your filters</h2>
 
 <p>
-Sorry, haven't gotten to this one yet.  Add/edit/delete coming soon, but
-here's your old list in case you forgot. :)
+Filters let you say "don't show me these kinds of links".  They'll be applied
+to all the views you see, except search results.  Use this page to add new
+filters (at the bottom if you already have some) or update the filters you
+already have set up.
+</p>
+
+<p>
+Please note that a "match value" is required.  What good would a filter be if
+it didn't have something to filter?
 </p>
 
 <table id='filters' class='gentable' cellspacing='1'>
     <tbody>
         <tr>
-            <th width='15%'>Type</th>
-            <th width='40%'>Match value</th>
-            <th width='10%'>Exact Match?</th>
-            <th width='10%'>Enable?</th>
-            <th width='25%'>Actions</th>
+            <th width='15%'>type</th>
+            <th width='40%'>match value</th>
+            <th width='10%'>exact match?</th>
+            <th width='10%'>enable?</th>
+            <th width='10%'>remove?</th>
         </tr>
-        {% for f in filters %}
+        <form method='post' action=''>
+            {{ formset.management_form }}
+
+            {% for form in formset.forms %}
+                {{ form.id }}
+                <input type='hidden' name='form-{{ forloop.counter0 }}-user' value='{{ user.id }}' id='id_form-{{ forloop.counter0 }}-user'>
+                <tr>
+                    <td>{{ form.attr_name }}</td>
+                    <td>{{ form.value }}</td>
+                    <td>{{ form.is_exact }}</td>
+                    <td>{{ form.is_active }}</td>
+                    <td>{{ form.DELETE }}</td>
+                </tr>
+            {% endfor %}
+            <tr>
+                <td colspan='4'>&nbsp;</td>
+                <td><input type='submit' value='update'></td>
+            </tr>
+        </form>
         <tr>
-            <form method='POST' action='{% user_filter_edit f.id %}'>
-                <td>{{ f.attr_name }}</td>
-                <td>{{ f.value }}</td>
-                <td>{{ f.is_exact }}</td>
-                <td>{{ f.is_active }}</td>
-                <td>[update] [delete]</td>
-            </form>
+            <td colspan='5'>Add new</td>
         </tr>
-        {% endfor %}
         <tr>
-            <form method='POST' action='#'>
-                <td>foo</td>
+            <form method='post' action='{% url filter_new %}'>
+                <input type='hidden' name='user' id='id_user' value='{{ user.id }}'>
+                <td>{{ new_form.attr_name }}</td>
+                <td>{{ new_form.value }}</td>
+                <td>{{ new_form.is_exact }}</td>
+                <td>{{ new_form.is_active }}</td>
+                <td><input type='submit' value='add'></td>
             </form>
         </tr>
     </tbody>

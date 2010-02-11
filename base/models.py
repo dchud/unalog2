@@ -58,7 +58,8 @@ class Filter (m.Model):
         ('url', 'url'),
         ]
     user = m.ForeignKey(User, related_name='filters')
-    attr_name = m.CharField(max_length=20, choices=ATTR_NAME_CHOICES)
+    attr_name = m.CharField(max_length=20, choices=ATTR_NAME_CHOICES,
+        default='user')
     value = m.CharField(max_length=50)
     is_exact = m.BooleanField(default=False)
     is_active = m.BooleanField(default=True)

@@ -9,6 +9,7 @@ from django.core.paginator import Paginator
 from django.core.urlresolvers import reverse
 from django.db.models import Count
 from django import forms
+from django.forms.models import modelformset_factory
 from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.http import HttpResponsePermanentRedirect
 from django.shortcuts import render_to_response, get_object_or_404
@@ -16,7 +17,6 @@ from django.template import RequestContext, loader
 from django.utils import feedgenerator
 
 import solr
-
 from base import models as m
 from settings import SOLR_URL
 
@@ -221,7 +221,7 @@ def entry_delete (request, entry_id):
             message = 'Deleted entry %s' % entry_id
             request.user.message_set.create(message=message)
             return HttpResponseRedirect(reverse('index'))
-    return render_to_response('delete_entry.html', 
+    return render_to_response('entry_delete.html', 
         {'entry': e}, context)
 
 
@@ -277,7 +277,7 @@ def entry_edit (request, entry_id):
             'is_private': e.is_private,
             }
         form = EntryForm(data)
-    return render_to_response('update_entry.html', {
+    return render_to_response('entry_edit.html', {
         'form': form, 'entry': e,
         }, context)
 
@@ -489,16 +489,38 @@ def user_tags (request, user_name):
         }, context)
 
 
-def user_filters (request, user_name):
+@login_required
+def filter_index (request):
     context = RequestContext(request)
-    u = get_object_or_404(m.User, username=user_name)
-    if u == request.user:
-        qs = m.Filter.objects.filter(user=u).order_by('-date_created')
-        return render_to_response('filters.html', {
-            'filters': qs,
-            }, context)
-    # Otherwise, shouldn't be askin'.
-    return HttpResponseRedirect(reverse('index'))
+    qs = m.Filter.objects.filter(user=request.user).order_by('date_created')
+    FilterFormSet = modelformset_factory(m.Filter, extra=0, can_delete=True)
+    if request.method == 'POST':
+        formset = FilterFormSet(request.POST, request.FILES)
+        if formset.is_valid():
+            formset.save()
+            request.user.message_set.create(message='Updated your filters.')
+        else:
+            request.user.message_set.create(message='Please check again.')
+    # Generate a new formset no matter what; something might've been deleted.
+    formset = FilterFormSet(queryset=qs)
+    return render_to_response('filters.html', {
+        'formset': formset,
+        'new_form': m.FilterForm(instance=m.Filter(user=request.user)),
+        'title': 'your filters',
+        }, context)
+    
+    
+@login_required
+def filter_new (request):
+    context = RequestContext(request)
+    if request.method == 'POST':
+        form = m.FilterForm(request.POST)
+        if form.is_valid():
+            form.save()
+            request.user.message_set.create(message='Saved your new filter.')
+        else:
+            request.user.message_set.create(message='Something went wrong, please try again.')
+    return HttpResponseRedirect(reverse('filter_index'))
     
     
 def url (request, md5sum=''):
