@@ -39,10 +39,12 @@ it didn't have something to filter?
                     <td>{{ form.DELETE }}</td>
                 </tr>
             {% endfor %}
-            <tr>
-                <td colspan='4'>&nbsp;</td>
-                <td><input type='submit' value='update'></td>
-            </tr>
+            {% ifnotequal formset.initial_form_count 0 %}
+                <tr>
+                    <td colspan='4'>&nbsp;</td>
+                    <td><input type='submit' value='update'></td>
+                </tr>
+            {% endifnotequal %}
         </form>
         <tr>
             <td colspan='5'>Add new</td>
