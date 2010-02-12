@@ -84,12 +84,12 @@ X Privacy
 
 X Inactive users 
 
-  Filters
+X Filters
     X execute
     X browse
     - search
- 	view
-    edit
+ 	X view
+    X edit
 
   User prefs
     privacy
