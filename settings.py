@@ -72,7 +72,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 	'django.core.context_processors.auth',
 )
 
-ROOT_URLCONF = 'unalog2.urls'
+ROOT_URLCONF = 'urls'
 
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
@@ -87,7 +87,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.sites',
     'django.contrib.admin',
-    'unalog2.base',
+    'base',
 )
 
 AUTH_PROFILE_MODULE = 'base.userprofile'
