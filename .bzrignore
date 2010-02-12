@@ -1,4 +1,4 @@
-settings.py
+local_settings.py
 *.sqlite3
 *.py[co]
 *~

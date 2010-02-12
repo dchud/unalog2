@@ -1,24 +1,20 @@
 # Django settings for unalog2 project.
 
-DEBUG = True
+from os.path import abspath, dirname
+
+DEBUG = True   
 TEMPLATE_DEBUG = DEBUG
 
-from os.path import abspath, dirname
-UNALOG_ROOT = dirname(abspath(__file__))
-
-# Set to your local site's host:port, *not* including trailing slash
-UNALOG_URL = 'http://localhost:8080'
-
 ADMINS = (
-    # ('Your Name', 'your_email@domain.com'),
+    ('Your name', 'you@example.com'),
 )
 
 MANAGERS = ADMINS
 
-DATABASE_ENGINE = 'postgresql_psycopg2'           # 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-DATABASE_NAME = 'unalog2'             # Or path to database file if using sqlite3.
-DATABASE_USER = 'dbuser'             # Not used with sqlite3.
-DATABASE_PASSWORD = 'dbpass'         # Not used with sqlite3.
+DATABASE_ENGINE = 'postgresql_psycopg2' # 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
+DATABASE_NAME = ''             # Or path to database file if using sqlite3.
+DATABASE_USER = ''             # Not used with sqlite3.
+DATABASE_PASSWORD = ''         # Not used with sqlite3.
 DATABASE_HOST = ''             # Set to empty string for localhost. Not used with sqlite3.
 DATABASE_PORT = ''             # Set to empty string for default. Not used with sqlite3.
 
@@ -32,6 +28,8 @@ TIME_ZONE = 'America/New_York'
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
 LANGUAGE_CODE = 'en-us'
+
+DEFAULT_CHARSET = 'utf-8'
 
 SITE_ID = 1
 
@@ -54,7 +52,7 @@ MEDIA_URL = ''
 ADMIN_MEDIA_PREFIX = '/media/'
 
 # Make this unique, and don't share it with anybody.
-SECRET_KEY = '*o13@mzx+k9(#xy$wkno+6$@r2^@=b^ssvraneh@l-%8o5=(#q'
+SECRET_KEY = 'SET THIS TO A LONG, RANDOM STRING, WITH SOME @#$! CHARS TOO'
 
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
@@ -80,7 +78,7 @@ TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-    '/YOUR/PATH/TO/unalog2/base/templates',
+    '/PATH/TO/YOUR/COPY/OF/unalog2/base/templates',
 )
 
 INSTALLED_APPS = (
@@ -97,4 +95,15 @@ AUTH_PROFILE_MODULE = 'base.userprofile'
 LOGIN_URL = '/login'
 LOGIN_REDIRECT_URL = '/'
 
+UNALOG_ROOT = dirname(abspath(__file__))
+
+# Set to your local site's host:port, *not* including trailing slash
+UNALOG_URL = 'http://localhost:8000'
+
 SOLR_URL = 'http://localhost:8983/solr'
+
+# Be sure to create your own 'local_settings.py' file as described in README.txt
+try:
+    from local_settings import *
+except ImportError:
+    pass

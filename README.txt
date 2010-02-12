@@ -1,6 +1,6 @@
-This is unalog2.  It's a total rewrite of the original unalog social
+This is unalog2.  It's a from-scratch rewrite of the original unalog social
 bookmarking application.  It was written by Dan Chudnov (dchud at umich edu)
-who also wrote the original application in 2003.
+who also wrote the original application starting in 2003.
 
 The original application was a Python app that used Quixote1, ZODB, and
 PyLucene.  This is a Python app that uses Django, PostgreSQL, and Solr.  This
@@ -12,6 +12,7 @@ problems.  It had been "out there" on the net for five years without a lot of
 upkeep, which isn't so bad, I suppose.  The site was down for all of 2009
 because the rewrite got stalled.  Stuff happens.
 
+unalog2 is licensed under an MIT-style license; see LICENSE.txt.
 
 
 REQUIREMENTS
@@ -31,7 +32,6 @@ simplejson 2.0.9
 
 Last I heard Django will move to Python 3 slowly so I'm going to move to
 Python 3 slowly, too.  When they go, I'll go.
-
 
 
 INSTALLATION/DEPLOYMENT
@@ -103,14 +103,19 @@ Set up postgresql config.  Username below just a sample, pick your own.
     - adjust /etc/postgresql/8.3/main/pg_hba.conf appropriately
     - restart postgres if needed.
 
-    % createdb unalog2db05  # pick your own
+    % createdb unalog2db05  # pick your own name
     
-Set up unalog config.  In the directory where you unwrap unalog:
+Set up unalog config.  Examine settings.py for the defaults.  The last thing
+this file does is look for a "local_settings.py" file.  This is where you'll 
+put your own local settings.
 
-    % cp settings.py.default settings.py
+Create a file called "local_settings.py" in the same directory as settings.py.
+In that file, set at least the following:
 
     Set the following at least:
-    - UNALOG_URL
+    - ADMINS
+    - UNALOG_URL # e.g. 'http://localhost:8000', leaving off trailing slash
+    - SECRET_KEY
     - DATABASE_NAME
     - DATABASE_USER
     - DATABASE_PASSWORD 

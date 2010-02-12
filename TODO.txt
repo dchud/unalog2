@@ -91,21 +91,21 @@ X Filters
  	X view
     X edit
 
-  User prefs
-    privacy
-    link
-
-  settings_local.py
-
-  Tag edits
+X local_settings.py
 
 X Groups - entry, etc.
 
 X wsgi config
 
-  favicon.ico
+X favicon.ico (set in apache)
 
 X robots.txt (set in apache)
+
+  User prefs
+    privacy
+    link
+
+  Tag edits
 
   Reaper 
 
@@ -130,33 +130,11 @@ Next round:
 
   Extend user profiles with openid info
 
-  Implement oauth 
+  Implement oauth ?
 
 
 Redesign: 
 
-  Refresh layout/links (simple)
+X Refresh layout/links (simple)
 
   Redo layout (not simple)
-
-
-
-
-After port-ability:
-  
-  tag recommendations
-
-  comment threads/discussions
-
-  better bookmarklet
-
-  atompub interface
-
-
-
-Way after:
-
-  machine tags
-
-  i18n?
-
