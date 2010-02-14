@@ -114,6 +114,7 @@ In that file, set at least the following:
 
     Set the following at least:
     - ADMINS
+    - REALM # should be unique to your site/instance
     - UNALOG_URL # e.g. 'http://localhost:8000', leaving off trailing slash
     - SECRET_KEY
     - DATABASE_NAME

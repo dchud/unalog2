@@ -97,6 +97,9 @@ LOGIN_REDIRECT_URL = '/'
 
 UNALOG_ROOT = dirname(abspath(__file__))
 
+# Set to a unique realm for authentication
+REALM = "unalog CHANGEME"
+
 # Set to your local site's host:port, *not* including trailing slash
 UNALOG_URL = 'http://localhost:8000'
 

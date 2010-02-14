@@ -17,8 +17,12 @@ from django.template import RequestContext, loader
 from django.utils import feedgenerator
 
 import solr
+
+from basicauth import logged_in_or_basicauth
+
 from base import models as m
-from settings import SOLR_URL
+from settings import REALM, SOLR_URL
+
 
 class EntryForm (forms.Form):
     url = forms.URLField(required=True, label='URL')
@@ -150,7 +154,7 @@ def pagify (request, qs, num_items=50):
     return paginator, page
 
 
-@login_required
+@logged_in_or_basicauth(REALM)
 def entry_new (request):
     """
     Save a new URL entry.
@@ -203,7 +207,7 @@ def entry_new (request):
         {'form': form}, context)
 
 
-@login_required
+@logged_in_or_basicauth(REALM)
 def entry_delete (request, entry_id):
     """
     Let a user choose to delete an entry.
@@ -239,7 +243,7 @@ def entry (request, entry_id):
         }, context)
 
 
-@login_required
+@logged_in_or_basicauth(REALM)
 def entry_edit (request, entry_id):
     context = RequestContext(request)
     e = get_object_or_404(m.Entry, id=entry_id)
@@ -286,6 +290,7 @@ def bookmarklet (request):
     context = RequestContext(request)
     return render_to_response('bookmarklet.html', {
         'site_url': settings.UNALOG_URL,
+        'title': 'bookmarklets',
         }, context)
 
 
@@ -489,7 +494,7 @@ def user_tags (request, user_name):
         }, context)
 
 
-@login_required
+@logged_in_or_basicauth(REALM)
 def filter_index (request):
     context = RequestContext(request)
     qs = m.Filter.objects.filter(user=request.user).order_by('date_created')
@@ -510,7 +515,7 @@ def filter_index (request):
         }, context)
     
     
-@login_required
+@logged_in_or_basicauth(REALM)
 def filter_new (request):
     context = RequestContext(request)
     if request.method == 'POST':
