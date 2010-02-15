@@ -9,20 +9,20 @@
 {% ifequal browse_type "user" %}
 <h2><a href='{% url user browse_user_name %}'>{{ browse_user_name }}</a> 
 	{% if browse_user.get_profile.url %}
-	- <a href='{{ browse_user.get_profile.url }}'>{{ browse_user.get_profile.url }}</a> - 
+	    - <a href='{{ browse_user.get_profile.url }}'>{{ browse_user.get_profile.url }}</a> - 
 	{% endif %}
 	{% if tag %}
 	tag "{{ tag }}"
 	{% else %}
-	[<a href='/user/{{ browse_user_name }}/tags/'>tags</a>]
+	[<a href='{% url user_tags browse_user_name %}'>tags</a>]
 	{% endif %}
 	</h2>
 {% endifequal %}
 
 {% ifequal browse_type "tag" %}
-<h2>Tag <a href='/tag/{{ tag.name|iriencode }}/'>{{ tag.name }}</a>
+<h2>Tag <a href='{% url tag tag.name %}'>{{ tag.name }}</a>
 	{% if browse_user %}
-	for <a href='/user/{{ browse_user.username }}/'>{{ browse_user.username }}</a>
+	for <a href='{% url user browse_user.username %}'>{{ browse_user.username }}</a>
 	{% else %}
 	for everyone
 	{% endif %}

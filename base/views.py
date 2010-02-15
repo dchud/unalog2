@@ -489,7 +489,7 @@ def user_tags (request, user_name):
     qs_alpha = qs.order_by('tag__name')
     alpha_paginator, alpha_page = pagify(request, qs_alpha)
     return render_to_response('tags.html', {
-        'paginator': count_paginator, 'page': count_page,
+        'paginator': count_paginator, 'page': count_page, 'browse_user': u, 
         'alpha_paginator': alpha_paginator, 'alpha_page': alpha_page,
         }, context)
 
