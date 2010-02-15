@@ -195,7 +195,7 @@ def entry_new (request):
             new_entry.save()
             new_entry.add_tags(tags_orig)
 
-            request.user.message_set.create(message='Saved your entry.')
+            request.user.message_set.create(message='Saved!')
             # If they had to confirm this, they don't need an edit screen again
             if submit == 'Save anyway':
                 return HttpResponseRedirect(reverse('index'))
@@ -269,7 +269,7 @@ def entry_edit (request, entry_id):
             e.add_tags(tags_orig)
             e.save()
             
-            request.user.message_set.create(message='Saved your entry.')
+            request.user.message_set.create(message='Updated!')
             return HttpResponseRedirect(reverse('index'))
     else:
         data = {
@@ -337,7 +337,7 @@ def contact (request):
 
 def logout_view (request):
     logout(request)
-    return HttpResponseRedirect('/')
+    return HttpResponseRedirect(reverse('index'))
 
 def register_view (request):
     context = RequestContext(request)
