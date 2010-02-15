@@ -121,6 +121,14 @@ input[type=submit]:hover, input[type=button]:hover {
 	background: #ccb;
 }
 
+#id_url, #id_title, #id_comment {
+    width: 50em;
+}
+
+#id_tags {
+    width: 30em;
+}
+
 .gentable {
 	width: 90%;
 }

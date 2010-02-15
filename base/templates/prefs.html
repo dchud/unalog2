@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>Update your preferences</h2>
+
+<p>
+    Add your URL if you want other users to be able to find your home page. 
+    It will show up whenever someone looks at your links.
+</p>
+  
+<p>
+    "Keep account private" lets you hide all links from other users.
+    They won't be able to see any of your links unless you share them through
+    groups.
+</p>
+
+    {% if has_lotsa_entries %}
+<p>
+    <span class='bold'>Note:</span> if you change your "private" status,
+    unalog will reindex your links accordingly.  This might take a while, so
+    please be patient.
+</p>
+    {% endif %}
+    
+<p>
+    "Links private by default" makes your new links private
+    by default -- even if your account isn't private.  
+</p>
+
+
+<table class='gentable'>
+    <thead>
+    </thead>
+    <tbody>
+        <form method='POST' action='{% url prefs %}'>
+            <input id='id_user_id' name='user_id' type='hidden' value='{{ user.id }}' />
+            <tr>
+                <th>Your URL</th>
+                <td>{{ profile_form.url }}</td>
+            </tr>
+            <tr>
+                <th>Keep account private</th>
+                <td>{{ profile_form.is_private }}</td>
+            </tr>
+            <tr>
+                <th>Links private by default</th>
+                <td>{{ profile_form.default_to_private_entry }}</td>
+            </tr>
+            <tr>
+                <td>&nbsp;</td>
+                <td>
+                    <input type='submit' value='update'>
+                    {% if has_lotsa_entries %}
+                        (will take several seconds)
+                    {% endif %}
+                </td>
+            </tr>
+        </form>
+    </tbody>
+</table>
+
+
+
+{% endblock content %}

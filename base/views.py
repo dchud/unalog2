@@ -167,7 +167,7 @@ def entry_new (request):
         if form.is_valid():
             url_str = form.cleaned_data['url']
             title = form.cleaned_data['title']
-            is_private = form.cleaned_data['is_private']
+            is_private = request.user.get_profile().default_to_private_entry
             tags_orig = form.cleaned_data['tags']
             comment = form.cleaned_data['comment']
             content = form.cleaned_data['content']
@@ -432,7 +432,34 @@ def user (request, user_name):
         'browse_user_name': u.username,
         'feed_url': reverse('user_feed', args=[user_name]),
         }, context)
-    
+
+
+@logged_in_or_basicauth(REALM)
+def prefs (request):
+    context = RequestContext(request)
+    if request.method == 'POST':
+        profile_before = request.user.get_profile()
+        is_private_before = profile_before.is_private
+        form = m.UserProfileForm(request.POST, instance=profile_before)
+        if form.is_valid():
+            form.save()
+            if form.cleaned_data['is_private'] != is_private_before:
+                form.instance.solr_reindex()
+            request.user.message_set.create(message='Updated!')
+            return HttpResponseRedirect(reverse('index'))
+        else:
+            request.user.message_set.create(message='Something went wrong, please try again.')
+    profile_form = m.UserProfileForm(instance=request.user.get_profile())
+    has_lotsa_entries = False
+    # Warning, arbitrary constant
+    if request.user.entries.count() > 50:
+        has_lotsa_entries = True
+    return render_to_response('prefs.html', {
+        'title': 'preferences',
+        #'user_form': user_form,
+        'profile_form': profile_form,
+        'has_lotsa_entries': has_lotsa_entries
+        }, context)
 
 def user_feed (request, user_name):
     context = RequestContext(request)

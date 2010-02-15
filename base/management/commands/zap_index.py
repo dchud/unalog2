@@ -19,7 +19,7 @@ class Command(BaseCommand):
     def handle(self, **options):
         solr = SolrConnection(SOLR_URL)
         if options['user']:
-            solr.delete_query('user: %s' % options['user'])
+            solr.delete_query('user:%s' % options['user'])
         else:
             solr.delete_query('id:[* TO *]')
         solr.commit()

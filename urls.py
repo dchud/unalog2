@@ -26,6 +26,7 @@ urlpatterns += patterns('base.views',
     url(r'^register/$', 'register_view', name='register'),
     url(r'^indexing.js$', 'indexing_js', name='indexing_js'),
     url(r'^bookmarklet/$', 'bookmarklet', name='bookmarklet'),
+    url(r'^prefs/$', 'prefs', name='prefs'),
     url(r'^about/$', 'about', name='about'),
     url(r'^contact/$', 'contact', name='contact'),
     

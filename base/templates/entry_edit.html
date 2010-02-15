@@ -14,39 +14,17 @@ Private entries will only be visible to you (see "my entries")
 and other members of private groups to which they are added.
 </p>
 
+
 <form action='{% url entry_edit entry.id %}' method='POST'>
-	<table>
-		<tbody>
-			<tr>
-				<th valign='top'><label for="id_url">URL:</label></th>
-				<td><input type="text" name="url" size="80" value="{{ form.data.url }}" id="id_url" /></td>
-			</tr>
-			<tr>
-				<th valign='top'><label for="id_title">Title:</label></th>
-				<td><input type="text" name="title" size="80" value="{{ form.data.title }}" id="id_title" /></td>
-			</tr>
-			<tr>
-				<th valign='top'><label for="id_tags">Tags:</label></th>
-				<td><input type="text" name="tags" size="80" id="id_tags" value="{{ form.data.tags }}" /><br />Separate with spaces</td>
-			</tr>
-			<tr>
-				<th valign='top'><label for="id_is_private">Is private:</label></th>
-				<td><input type="checkbox" name="is_private" id="id_is_private" {% if form.data.checked %}checked="checked"{% endif %}/></td>
-			</tr>
-			<tr>
-				<th valign='top'><label for="id_comment">Comment:</label></th>
-				<td><textarea id="id_comment" rows="4" cols="60" name="comment">{{ form.data.comment }}</textarea></td>
-			</tr>
-			<tr>
-				<th valign='top'><label for="id_content">Content:</label></th>
-				<td><textarea id="id_content" rows="10" cols="60" name="content">{{ form.data.content }}</textarea></td>
-			</tr>
+    <table class='gentable'>
+        <tbody>
+            {{ form.as_table }}
 			<tr>
 				<td></td>
 				<td><input type='submit' value='save' /></td>
 			</tr>
-		</tbody>
-	</table>
+        </tbody>
+    </table>
 </form>
 
 {% endblock %}

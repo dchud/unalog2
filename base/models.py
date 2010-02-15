@@ -6,7 +6,7 @@ from solr import SolrConnection
 
 from django.conf import settings
 from django.contrib.auth.models import User, Group
-from django.db import connection, models as m
+from django.db import connection, reset_queries, models as m
 from django.db.models.signals import post_save
 from django.forms import ModelForm
 
@@ -49,6 +49,44 @@ class UserProfile (m.Model):
     tz = m.CharField(blank=True, max_length=6)
     group_invites = m.ManyToManyField(Group, related_name='invitees', blank=True)
     date_modified = m.DateTimeField(auto_now=True)
+    
+    def solr_reindex (self):
+        """
+        Reindex all entries.  Used when switching to/from "private" status.
+        """
+        solr_conn = SolrConnection(settings.SOLR_URL)
+        # Start by deleting 'em all
+        solr_conn.delete_query('user:%s' % self.user.id)
+        entries = Entry.objects.filter(user=self.user)
+        docs = []
+        # Arbitrary assignment of a constant, here.
+        SLICE_SIZE = 50
+        slices = [x for x in range(entries.count()) \
+            if x % SLICE_SIZE == 0]
+        for s in slices:
+            entry_slice = entries[s:s+SLICE_SIZE]
+            for entry in entry_slice:
+                docs.append(entry.solr_doc)
+                if len(docs) == SLICE_SIZE:
+                    try:
+                        solr_conn.add_many(docs)
+                    except:
+                        # should log appropriately, huh
+                        pass
+                    del(docs)
+                    docs = []
+        # Don't miss the leftovers
+        solr_conn.add_many(docs)
+        solr_conn.commit()
+        solr_conn.optimize()
+        
+        
+    
+    
+class UserProfileForm (ModelForm):
+    class Meta:
+        model = UserProfile
+        fields = ['url', 'is_private', 'default_to_private_entry']
 
 
 class Filter (m.Model):
@@ -259,7 +297,7 @@ class Entry (m.Model):
         solr_conn = SolrConnection(settings.SOLR_URL)
         solr_conn.delete_query('id:%s' % self.id)
         solr_conn.commit()
-        
+
     def save(self, force_insert=False, force_update=False, solr_index=True):
         """
         Override the built-in save() to write out to solr.

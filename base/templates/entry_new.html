@@ -46,7 +46,11 @@ and other members of private groups to which they are added.
 			</tr>
 			<tr>
 				<th valign='top'><label for='id_is_private'>Is private:</label></th>
-				<td><input type='checkbox' name='is_private' id='id_is_private' /></td>
+				<td><input type='checkbox' name='is_private' id='id_is_private' 
+				    {% if user.get_profile.default_to_private_entry %}
+				        checked='checked'
+				    {% endif %}
+				    /></td>
 			</tr>
 			<tr>
 				<th valign='top'><label for='id_comment'>Comment:</label></th>
