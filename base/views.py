@@ -15,6 +15,7 @@ from django.http import HttpResponsePermanentRedirect
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext, loader
 from django.utils import feedgenerator
+from django.views.decorators.cache import cache_control
 
 import solr
 
@@ -208,6 +209,7 @@ def entry_new (request):
 
 
 @logged_in_or_basicauth(REALM)
+@cache_control(no_cache=True)
 def entry_delete (request, entry_id):
     """
     Let a user choose to delete an entry.
@@ -244,6 +246,7 @@ def entry (request, entry_id):
 
 
 @logged_in_or_basicauth(REALM)
+@cache_control(no_cache=True)
 def entry_edit (request, entry_id):
     context = RequestContext(request)
     e = get_object_or_404(m.Entry, id=entry_id)
@@ -435,6 +438,7 @@ def user (request, user_name):
 
 
 @logged_in_or_basicauth(REALM)
+@cache_control(no_cache=True)
 def prefs (request):
     context = RequestContext(request)
     if request.method == 'POST':
@@ -522,6 +526,7 @@ def user_tags (request, user_name):
 
 
 @logged_in_or_basicauth(REALM)
+@cache_control(no_cache=True)
 def filter_index (request):
     context = RequestContext(request)
     qs = m.Filter.objects.filter(user=request.user).order_by('date_created')
