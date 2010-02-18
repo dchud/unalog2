@@ -239,9 +239,10 @@ def entry (request, entry_id):
     # First use the shortcut to bounce to 404 if nec.; a cheat!
     e = get_object_or_404(m.Entry, id=entry_id)
     qs = constrained_entries(request, candidate_ids=[entry_id])
+    paginator, page = pagify(request, qs)
     return render_to_response('index.html', {
-        'title': 'Entry', 
-        'paginator': paginator, 'page': page, 
+        'title': 'link %s from %s' % (entry_id, e.user.username), 
+        'paginator': paginator, 'page': page,
         }, context)
 
 
