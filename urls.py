@@ -31,7 +31,7 @@ urlpatterns += patterns('base.views',
     url(r'^contact/$', 'contact', name='contact'),
     
     # Entries
-    url(r'^entry/(?P<entry_id>[0-9]+)$', 'entry', name='entry'),
+    url(r'^entry/(?P<entry_id>[0-9]+)/$', 'entry', name='entry'),
     url(r'^entry/new', 'entry_new', name='entry_new'),
     url(r'^entry/(?P<entry_id>[0-9]+)/edit/$', 'entry_edit', 
         name='entry_edit'),
