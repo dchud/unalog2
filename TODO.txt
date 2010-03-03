@@ -101,9 +101,9 @@ X favicon.ico (set in apache)
 
 X robots.txt (set in apache)
 
-  User prefs
-    privacy
-    link
+X User prefs
+  X privacy
+  X link
 
   Tag edits
 
