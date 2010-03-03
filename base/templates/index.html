@@ -9,7 +9,7 @@
 {% ifequal browse_type "user" %}
 <h2><a href='{% url user browse_user_name %}'>{{ browse_user_name }}</a> 
 	{% if browse_user.get_profile.url %}
-	    - <a rel='me nofollow' href='{{ browse_user.get_profile.url }}'>{{ browse_user.get_profile.url }}</a> - 
+	    - <a rel='me' href='{{ browse_user.get_profile.url }}'>{{ browse_user.get_profile.url }}</a> - 
 	{% endif %}
 	{% if tag %}
 	tag "{{ tag }}"
