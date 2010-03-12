@@ -39,6 +39,11 @@ class EntryTagAdmin(admin.ModelAdmin):
     list_display = ['id', 'entry', 'tag', 'sequence_num']
     search_fields = ['tag']
 
+class EntryWebhookAdmin(admin.ModelAdmin):
+    list_display = ['id', 'entry', 'url', 'date_first_attempt',
+        'num_attempts', 'date_latest_attempt']
+    list_filter = ['date_first_attempt', 'date_latest_attempt',
+        'num_attempts']
 
 admin.site.register(m.GroupProfile, GroupProfileAdmin)
 admin.site.register(m.UserProfile, UserProfileAdmin)
@@ -47,3 +52,4 @@ admin.site.register(m.Tag, TagAdmin)
 admin.site.register(m.Url, UrlAdmin)
 admin.site.register(m.Entry, EntryAdmin)
 admin.site.register(m.EntryTag, EntryTagAdmin)
+admin.site.register(m.EntryWebhook, EntryWebhookAdmin)

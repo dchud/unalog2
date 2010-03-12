@@ -28,6 +28,13 @@
     by default -- even if your account isn't private.  
 </p>
 
+<p>
+    "Webhook POST URL" is a URL to which unalog will send an HTTP POST with
+    information about your new links when you save them.  The payload is
+    JSON.  Read more about Webhooks at <a 
+    href="http://www.webhooks.org/">webhooks.org</a>.
+</p>
+
 
 <table class='gentable'>
     <thead>
@@ -46,6 +53,10 @@
             <tr>
                 <th>Links private by default</th>
                 <td>{{ profile_form.default_to_private_entry }}</td>
+            </tr>
+            <tr>
+                <th>Webhook POST URL</th>
+                <td>{{ profile_form.webhook_url }}</td>
             </tr>
             <tr>
                 <td>&nbsp;</td>
