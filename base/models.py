@@ -111,7 +111,7 @@ class FilterForm (ModelForm):
         
 
 # Bad chars for tags
-BAD_CHARS = """ ~`@#$%^&*()?\/,<>;\"'"""
+BAD_CHARS = """ ~`@#$%^&*()?\/,<>;!\"'"""
 RE_BAD_CHARS = re.compile(r'[%s]' % BAD_CHARS)
 
 class Tag (m.Model):
