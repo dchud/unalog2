@@ -45,14 +45,14 @@ urlpatterns += patterns('base.views',
         name='tag_feed'),
     
     # Users
-    url(r'^user/(?P<user_name>[a-zA-Z0-9._]+)/$', 'user', name='user'),
-    url(r'^user/(?P<user_name>[a-zA-Z0-9._]+)/feed/$', 'user_feed', 
+    url(r'^user/(?P<user_name>[a-zA-Z0-9._-]+)/$', 'user', name='user'),
+    url(r'^user/(?P<user_name>[a-zA-Z0-9._-]+)/feed/$', 'user_feed', 
         name='user_feed'),
-    url(r'^user/(?P<user_name>[a-zA-Z0-9._]+)/tags/$', 'user_tags', 
+    url(r'^user/(?P<user_name>[a-zA-Z0-9._-]+)/tags/$', 'user_tags', 
         name='user_tags'),
-    url(r'^user/(?P<user_name>[a-zA-Z0-9._]+)/tag/(?P<tag_name>[+\w:._-]+)/$', 
+    url(r'^user/(?P<user_name>[a-zA-Z0-9._-]+)/tag/(?P<tag_name>[+\w:._-]+)/$', 
         'user_tag', name='user_tag'),
-    url(r'^user/(?P<user_name>[a-zA-Z0-9._]+)/tag/(?P<tag_name>[+\w:._-]+)/feed/$', 
+    url(r'^user/(?P<user_name>[a-zA-Z0-9._-]+)/tag/(?P<tag_name>[+\w:._-]+)/feed/$', 
         'user_tag_feed', name='user_tag_feed'),
 
     # Filters
