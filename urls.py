@@ -63,8 +63,8 @@ urlpatterns += patterns('base.views',
     url(r'^person/(?P<user_name>.*)/$', 'person'),
 
     # Groups... 
-    url(r'^group/(?P<group_name>[a-zA-Z0-9._]+)/$', 'group', name='group'),
-    url(r'^group/(?P<group_name>[a-zA-Z0-9._]+)/feed/$', 'group_feed', 
+    url(r'^group/(?P<group_name>[a-zA-Z0-9._-]+)/$', 'group', name='group'),
+    url(r'^group/(?P<group_name>[a-zA-Z0-9._-]+)/feed/$', 'group_feed', 
         name='group_feed'),
     # Punt on these for now.
     #url(r'^group/(?P<group_name>[a-zA-Z0-9._]+)/tags/$', 'group_tags', 
