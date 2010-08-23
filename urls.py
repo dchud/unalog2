@@ -60,7 +60,7 @@ urlpatterns += patterns('base.views',
     url(r'^filter/new/$', 'filter_new', name='filter_new'),
 
     # Legacy url pattern - redirect.  No name assigned to discourage use.
-    url(r'^person/(?P<user_name>.*)/$', 'person'),
+    url(r'^person/(?P<user_name>[a-zA-Z0-9._-]+)/$', 'person'),
 
     # Groups... 
     url(r'^group/(?P<group_name>[a-zA-Z0-9._-]+)/$', 'group', name='group'),
