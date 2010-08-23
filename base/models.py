@@ -288,7 +288,7 @@ class Entry (m.Model):
         """
         Write out to solr
         """
-        solr_conn = SolrConnection(settings.SOLR_URL)
+        solr_conn = SolrConnection(settings.SOLR_URL, persistent=False)
         solr_conn.add(**self.solr_doc)
         solr_conn.commit()
 
@@ -296,7 +296,7 @@ class Entry (m.Model):
         """
         Remove from solr index
         """
-        solr_conn = SolrConnection(settings.SOLR_URL)
+        solr_conn = SolrConnection(settings.SOLR_URL, persistent=False)
         solr_conn.delete_query('id:%s' % self.id)
         solr_conn.commit()
 
