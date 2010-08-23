@@ -495,7 +495,7 @@ def user_tag_feed (request, user_name, tag_name=''):
     qs = constrained_entries(request, requested_user=u, tag=t)
     paginator, page = pagify(request, qs)
     return atom_feed(page=page, 
-        title='latest from %s - tag "%s"' % (user_name, tag.name),
+        title='latest from %s - tag "%s"' % (user_name, tag_name),
         link=reverse('user_tag', args=[user_name, tag_name]))
     
     
