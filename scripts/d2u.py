@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-This is a delcious to unalog import tool. 
+This is a delicious to unalog import tool. 
 
   ./d2u.py --username me --password secret delicious-20101216.htm
 
@@ -72,10 +72,14 @@ for dt in doc.findall(".//{%s}dt" % xhtml):
     t = time.localtime(int(b["add_date"]))
     t = time.strftime('%Y-%m-%dT%H:%M:%S%z', t)
 
-    # get the content at the url
+    # get the content at the url only if it looks like html or text
     url = b["href"]
     resp, content = h.request(url, "GET")
     status[resp.status] = status.get(resp.status, 0) + 1
+    if 'html' in resp['content-type'] or 'text' in resp['content-type']:
+        content = content.decode('utf-8', 'replace')
+    else:
+        content = None
 
     # build the bookmark entry
     entry = {
@@ -85,7 +89,7 @@ for dt in doc.findall(".//{%s}dt" % xhtml):
         "private": b["private"] == 1,
         "date_created": t,
         "comment": comment,
-        #"content": content
+        "content": content
     }
 
     # send the bookmark to unalog as json
@@ -93,8 +97,12 @@ for dt in doc.findall(".//{%s}dt" % xhtml):
     resp, content = h.request(unalog, "POST", body=json.dumps(entry),
             headers={"content-type": "application/json"})
 
-    count += 1
-    if count % 30 == 0:
+    if resp.status not in [200, 201, 302]:
+        print "post to unalog failed! %s" % resp
+        print content
         break
 
-print status
+    count += 1
+
+print "imported %s bookmarks" % count
+print "status code summary: %s" % status

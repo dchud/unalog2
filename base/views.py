@@ -241,7 +241,14 @@ def entry_new (request):
             new_entry.save()
             new_entry.add_tags(tags_orig)
 
+            if payload == "application/json":
+                url = reverse('entry', args=[new_entry.id])
+                if was_created:
+                    return HttpResponseCreated(url)
+                else:
+                    return HttpResponseRedirect(url)
             request.user.message_set.create(message='Saved!')
+
             # If they had to confirm this, they don't need an edit screen again
             if submit == 'Save anyway':
                 return HttpResponseRedirect(reverse('index'))
@@ -774,3 +781,10 @@ def search_feed (request):
         except:
             page = None
     return render_to_response('index.html', context)
+
+class HttpResponseCreated(HttpResponse):
+    status_code = 201
+
+    def __init__(self, location):
+        HttpResponse.__init__(self)
+        self["Location"] = location
