@@ -85,8 +85,10 @@ for dt in doc.findall(".//{%s}dt" % xhtml):
             content = content.decode('utf-8', 'replace')
         else:
             content = None
-    except httplib2.RedirectLimit:
+    except httplib2.HttpLib2Error, e:
         content = None
+        error = str(type(e))
+        status[error] = status.get(error, 0) + 1
 
     # build the bookmark entry
     entry = {
