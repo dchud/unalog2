@@ -77,11 +77,15 @@ for dt in doc.findall(".//{%s}dt" % xhtml):
 
     # get the content at the url only if it looks like html or text
     url = b["href"]
-    resp, content = h.request(url, "GET")
-    status[resp.status] = status.get(resp.status, 0) + 1
-    if 'html' in resp['content-type'] or 'text' in resp['content-type']:
-        content = content.decode('utf-8', 'replace')
-    else:
+    try:
+        resp, content = h.request(url, "GET")
+        status[resp.status] = status.get(resp.status, 0) + 1
+        content_type = resp['content-type']
+        if 'html' in content_type or 'text' in content_type:
+            content = content.decode('utf-8', 'replace')
+        else:
+            content = None
+    except httplib2.RedirectLimit:
         content = None
 
     # build the bookmark entry
@@ -101,9 +105,8 @@ for dt in doc.findall(".//{%s}dt" % xhtml):
             headers={"content-type": "application/json"})
 
     if resp.status not in [200, 201, 302]:
-        print "post to unalog failed! %s" % resp
-        print content
-        break
+        print "post to unalog failed! %s" % url
+
 
     count += 1
 
