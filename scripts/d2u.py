@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 
 """
-This is a delicious to unalog import tool. 
+This is a delicious to unalog import tool. You'll need to export your
+delicious links and save them as a file ... it should be html. Then
+you run this script with your unalog username and password with the 
+delicious export file:
 
   ./d2u.py --username me --password secret delicious-20101216.htm
 
