@@ -33,6 +33,7 @@ opt_parser.add_option('-u', '--username', dest='username')
 opt_parser.add_option('-p', '--password', dest='password')
 opt_parser.add_option('-n', '--unalog', dest='unalog', 
                       default="http://unalog.com")
+opt_parser.add_option('-s', '--skip', type=int, dest='skip', default=0)
 
 opts, args = opt_parser.parse_args()
 
@@ -56,10 +57,15 @@ h = httplib2.Http()
 h.add_credentials(opts.username, opts.password)
 unalog = opts.unalog.rstrip("/") + "/entry/new"
 
-status = {}
+summary = {}
 count = 0
 
 for dt in doc.findall(".//{%s}dt" % xhtml):
+    count += 1
+    if opts.skip > 1 and count < opts.skip:
+        print "skipping %s" % count
+        continue
+
     # get the bookmark from the dt
     a = dt.find('{%s}a' % xhtml)
     b  = a.attrib
@@ -79,16 +85,19 @@ for dt in doc.findall(".//{%s}dt" % xhtml):
     url = b["href"]
     try:
         resp, content = h.request(url, "GET")
-        status[resp.status] = status.get(resp.status, 0) + 1
+        status = resp.status 
+        summary[status] = summary.get(status, 0) + 1
         content_type = resp['content-type']
         if 'html' in content_type or 'text' in content_type:
             content = content.decode('utf-8', 'replace')
         else:
             content = None
-    except httplib2.HttpLib2Error, e:
+    except Exception, e:
         content = None
-        error = str(type(e))
-        status[error] = status.get(error, 0) + 1
+        status = str(type(e))
+
+    summary[status] = summary.get(status, 0) + 1
+    print "\t".join([url, str(status)])
 
     # build the bookmark entry
     entry = {
@@ -102,7 +111,6 @@ for dt in doc.findall(".//{%s}dt" % xhtml):
     }
 
     # send the bookmark to unalog as json
-    print url
     resp, content = h.request(unalog, "POST", body=json.dumps(entry),
             headers={"content-type": "application/json"})
 
@@ -110,7 +118,6 @@ for dt in doc.findall(".//{%s}dt" % xhtml):
         print "post to unalog failed! %s" % url
 
 
-    count += 1
 
 print "imported %s bookmarks" % count
-print "status code summary: %s" % status
+print "response summary: %s" % summary
