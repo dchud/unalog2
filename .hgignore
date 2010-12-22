@@ -8,3 +8,6 @@ local_settings.py
 datadump*
 search*
 aws-tests*
+
+syntax: regexp
+^\.project$
