@@ -204,7 +204,7 @@ class Entry (m.Model):
     is_private = m.BooleanField(default=False, db_index=True)
     content = m.TextField(blank=True)
     groups = m.ManyToManyField(Group, related_name='entries')
-    date_created = m.DateTimeField(auto_now_add=True, db_index=True)
+    date_created = m.DateTimeField(db_index=True)
     date_modified = m.DateTimeField(auto_now=True)
     
     def __unicode__ (self):

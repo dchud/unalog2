@@ -8,6 +8,8 @@ so that you don't stomp on your real production solr.
 
 """
 
+import datetime
+
 from django.conf import settings
 from django.test import TestCase, Client
 from django.utils import simplejson as json
@@ -65,6 +67,31 @@ class UnalogTests(TestCase):
         self.assertEqual(entry_tags[0].tag.name, 'unalog')
         self.assertEqual(entry_tags[1].tag.name, 'yeah')
 
+    def test_add_entry_json_with_created(self):
+        client = Client()
+        self.assertTrue(client.login(username='unalog', password='unalog'))
+        test_entry = self.test_entry.copy()
+        test_entry['date_created'] = '1985-04-12T23:20:50.52Z'
+        entry_json = json.dumps(test_entry)
+        response = client.post('/entry/new', entry_json, 
+                content_type='application/json')
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response['location'], 'http://testserver/entry/1/edit/')
+        entry = m.Entry.objects.get(id=1)
+        self.assertEqual(entry.date_created, 
+            datetime.datetime(1985, 4, 12, 23, 20, 50))
+        
+    def test_add_entry_json_with_bad_created(self):
+        client = Client()
+        self.assertTrue(client.login(username='unalog', password='unalog'))
+        test_entry = self.test_entry.copy()
+        test_entry['date_created'] = 'blah'
+        entry_json = json.dumps(test_entry)
+        response = client.post('/entry/new', entry_json, 
+                content_type='application/json')
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(m.Entry.objects.all().count(), 0)
+
     def test_add_entry_invalid_json(self):
         client = Client()
         self.assertTrue(client.login(username='unalog', password='unalog'))
@@ -73,14 +100,13 @@ class UnalogTests(TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response['content-type'], 'text/plain')
         self.assertEqual(response.content, 'invalid json: Expecting property name: line 1 column 1 (char 1)')
+        self.assertEqual(m.Entry.objects.all().count(), 0)
 
     def test_add_entry_bad_json(self):
         # remove the required url field
         bad_json = self.test_entry.copy()
         del bad_json['url']
-
         entry_json = json.dumps(bad_json)
-
         client = Client()
         self.assertTrue(client.login(username='unalog', password='unalog'))
         response = client.post('/entry/new', entry_json, 
@@ -88,3 +114,5 @@ class UnalogTests(TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response['content-type'], 'text/plain')
         self.assertEqual(response.content, 'There was a problem with your JSON:\n\n  url: This field is required.')
+        self.assertEqual(m.Entry.objects.all().count(), 0)
+
