@@ -188,12 +188,12 @@ class Url (m.Model):
         """
         return hashlib.md5(self.value).hexdigest()
 
-    def save(self, force_insert=False, force_update=False):
+    def save(self, force_insert=False, force_update=False, **kwargs):
         """
         Set the md5sum automatically.
         """
         self.md5sum = self.md5
-        super(Url, self).save(force_insert, force_update)
+        super(Url, self).save(force_insert, force_update, **kwargs)
         
         
 

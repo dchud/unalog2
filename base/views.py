@@ -16,6 +16,8 @@ from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext, loader
 from django.utils import feedgenerator
 from django.views.decorators.cache import cache_control
+from django.views.decorators.csrf import csrf_exempt
+
 
 import solr
 
@@ -155,6 +157,7 @@ def pagify (request, qs, num_items=50):
     return paginator, page
 
 
+@csrf_exempt # to allow javascript bookmarklet to post
 @logged_in_or_basicauth(REALM)
 def entry_new (request):
     """

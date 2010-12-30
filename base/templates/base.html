@@ -33,7 +33,8 @@
 	                        [groups<!--[<a href='/my/group/'>groups</a>]-->]
                         
 						{% else %}
-							<form id='loginform' action='{% url login %}' method='post'>
+                                                    <form id='loginform' action='{% url login %}' method='post'>
+                                                    {% csrf_token %}
 		                     name <input name='username' type='text' size='8' />
 		                     pass <input name='password' type='password' size='8' />
 		                     <input type='submit' name='login' value='login' />

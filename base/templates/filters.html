@@ -26,6 +26,7 @@ it didn't have something to filter?
             <th width='10%'>remove?</th>
         </tr>
         <form method='post' action=''>
+            {% csrf_token %}
             {{ formset.management_form }}
 
             {% for form in formset.forms %}
@@ -51,6 +52,7 @@ it didn't have something to filter?
         </tr>
         <tr>
             <form method='post' action='{% url filter_new %}'>
+                {% csrf_token %}
                 <input type='hidden' name='user' id='id_user' value='{{ user.id }}'>
                 <td>{{ new_form.attr_name }}</td>
                 <td>{{ new_form.value }}</td>

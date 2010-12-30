@@ -5,13 +5,13 @@
 {% if old_entries %}
     <div id='entryset'>
         <h2>Hey!  You've saved this before.</h2>
-        	{% regroup old_entries by date_created.date as date_groups %}
-        	{% for date_group in date_groups %}
-        	   	<h2>{{ date_group.grouper|date:"l, Y-m-d" }}</h2>
-        		{% for entry in date_group.list %}
-        			{% include "entry.html" %}
-        		{% endfor %}       
-        	{% endfor %}
+            {% regroup old_entries by date_created.date as date_groups %}
+            {% for date_group in date_groups %}
+                   <h2>{{ date_group.grouper|date:"l, Y-m-d" }}</h2>
+                {% for entry in date_group.list %}
+                    {% include "entry.html" %}
+                {% endfor %}       
+            {% endfor %}
         <h2>Save it again if you like.</h2>
     </div>
 {% else %}
@@ -30,42 +30,43 @@ and other members of private groups to which they are added.
 </p>
 
 <form action='{% url entry_new %}' method='POST' accept-charset='UTF-8'>
-	<table>
-		<tbody>
-			<tr>
-				<th valign='top'><label for='id_url'>URL:</label></th>
-				<td><input type='text' name='url' size='80' value='{{ form.data.url }}' id='id_url' /></td>
-			</tr>
-			<tr>
-				<th valign='top'><label for='id_title'>Title:</label></th>
-				<td><input type='text' name='title' size='80' value='{{ form.data.title }}' id='id_title' /></td>
-			</tr>
-			<tr>
-				<th valign='top'><label for='id_tags'>Tags:</label></th>
-				<td><input type='text' name='tags' size='80' id='id_tags' /><br />Separate with spaces</td>
-			</tr>
-			<tr>
-				<th valign='top'><label for='id_is_private'>Is private:</label></th>
-				<td><input type='checkbox' name='is_private' id='id_is_private' 
-				    {% if user.get_profile.default_to_private_entry %}
-				        checked='checked'
-				    {% endif %}
-				    /></td>
-			</tr>
-			<tr>
-				<th valign='top'><label for='id_comment'>Comment:</label></th>
-				<td><textarea id='id_comment' rows='4' cols='60' name='comment'></textarea></td>
-			</tr>
-			<tr>
-				<th valign='top'><label for='id_content'>Content:</label></th>
-				<td><textarea id='id_content' rows='10' cols='60' name='content'>{{ content }}</textarea></td>
-			</tr>
-			<tr>
-				<td></td>
-				<td><input name='submit' type='submit' value='Save anyway' /></td>
-			</tr>
-		</tbody>
-	</table>
+    {% csrf_token %}
+    <table>
+        <tbody>
+            <tr>
+                <th valign='top'><label for='id_url'>URL:</label></th>
+                <td><input type='text' name='url' size='80' value='{{ form.data.url }}' id='id_url' /></td>
+            </tr>
+            <tr>
+                <th valign='top'><label for='id_title'>Title:</label></th>
+                <td><input type='text' name='title' size='80' value='{{ form.data.title }}' id='id_title' /></td>
+            </tr>
+            <tr>
+                <th valign='top'><label for='id_tags'>Tags:</label></th>
+                <td><input type='text' name='tags' size='80' id='id_tags' /><br />Separate with spaces</td>
+            </tr>
+            <tr>
+                <th valign='top'><label for='id_is_private'>Is private:</label></th>
+                <td><input type='checkbox' name='is_private' id='id_is_private' 
+                    {% if user.get_profile.default_to_private_entry %}
+                        checked='checked'
+                    {% endif %}
+                    /></td>
+            </tr>
+            <tr>
+                <th valign='top'><label for='id_comment'>Comment:</label></th>
+                <td><textarea id='id_comment' rows='4' cols='60' name='comment'></textarea></td>
+            </tr>
+            <tr>
+                <th valign='top'><label for='id_content'>Content:</label></th>
+                <td><textarea id='id_content' rows='10' cols='60' name='content'>{{ content }}</textarea></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td><input name='submit' type='submit' value='Save anyway' /></td>
+            </tr>
+        </tbody>
+    </table>
 </form>
 
 {% endblock %}
