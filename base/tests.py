@@ -56,8 +56,8 @@ class UnalogTests(TestCase):
         response = client.post('/entry/new', entry_json, 
                 content_type='application/json')
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(response['location'], 'http://testserver/entry/1/')
-        entry = m.Entry.objects.get(id=1)
+        self.assertEqual(response['location'], 'http://testserver/entry/2/')
+        entry = m.Entry.objects.get(id=2)
         self.assertEqual(entry.url.value, 'http://example.com/')
         self.assertEqual(entry.title, 'hey example.com!')
         self.assertEqual(entry.is_private, False)
@@ -77,8 +77,8 @@ class UnalogTests(TestCase):
         response = client.post('/entry/new', entry_json, 
                 content_type='application/json')
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(response['location'], 'http://testserver/entry/1/')
-        entry = m.Entry.objects.get(id=1)
+        self.assertEqual(response['location'], 'http://testserver/entry/3/')
+        entry = m.Entry.objects.get(id=3)
         self.assertEqual(entry.date_created, 
             datetime.datetime(1985, 4, 12, 23, 20, 50))
         
