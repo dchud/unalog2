@@ -22,11 +22,15 @@ import httplib2
 import json
 import optparse
 import os
+import socket
+import sys
 import time
-import urllib
+import urllib2
 
 from html5lib import HTMLParser, treebuilders
 from lxml import etree
+
+socket.setdefaulttimeout(10)
 
 opt_parser = optparse.OptionParser()
 opt_parser.add_option('-u', '--username', dest='username')
@@ -34,6 +38,7 @@ opt_parser.add_option('-p', '--password', dest='password')
 opt_parser.add_option('-n', '--unalog', dest='unalog', 
                       default="http://unalog.com")
 opt_parser.add_option('-s', '--skip', type=int, dest='skip', default=0)
+opt_parser.add_option('-c', '--check', action='store_true', dest='check')
 
 opts, args = opt_parser.parse_args()
 
@@ -63,7 +68,6 @@ count = 0
 for dt in doc.findall(".//{%s}dt" % xhtml):
     count += 1
     if opts.skip > 1 and count < opts.skip:
-        print "skipping %s" % count
         continue
 
     # get the bookmark from the dt
@@ -84,20 +88,31 @@ for dt in doc.findall(".//{%s}dt" % xhtml):
     # get the content at the url only if it looks like html or text
     url = b["href"]
     try:
-        resp, content = h.request(url, "GET")
-        status = resp.status 
+        resp = urllib2.urlopen(url)
+        content = resp.read()
+        status = resp.code 
         summary[status] = summary.get(status, 0) + 1
-        content_type = resp['content-type']
+        content_type = resp.headers['content-type']
         if 'html' in content_type or 'text' in content_type:
             content = content.decode('utf-8', 'replace')
         else:
             content = None
+    except urllib2.HTTPError, e:
+        content = None
+        status = e.code
+    except urllib2.URLError, e:
+        content = None
+        status = e.reason
     except Exception, e:
         content = None
         status = str(type(e))
 
     summary[status] = summary.get(status, 0) + 1
     print "\t".join([url, str(status)])
+
+    # don't bother posting to unalog if we're just checking
+    if opts.check:
+        continue
 
     # build the bookmark entry
     entry = {
