@@ -10,11 +10,13 @@ from django.core.urlresolvers import reverse
 from django.db.models import Count
 from django import forms
 from django.forms.models import modelformset_factory
-from django.http import Http404, HttpResponse, HttpResponseRedirect
+from django.http import Http404, HttpResponse, HttpResponseRedirect, \
+    HttpResponseBadRequest
 from django.http import HttpResponsePermanentRedirect
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext, loader
 from django.utils import feedgenerator
+from django.utils import simplejson as json
 from django.views.decorators.cache import cache_control
 from django.views.decorators.csrf import csrf_exempt
 
@@ -161,13 +163,38 @@ def pagify (request, qs, num_items=50):
 @logged_in_or_basicauth(REALM)
 def entry_new (request):
     """
-    Save a new URL entry.
+    Save a new URL entry. Can either come from a html form, or via some json.
     """
     request.encoding = 'utf-8'
+    payload = request.META['CONTENT_TYPE']
     context = RequestContext(request)
     d = {}
+
     if request.method == 'POST':
-        form = EntryForm(request.POST)
+
+        # if application/json was posted try to construct a form based on it
+        if payload == 'application/json':
+            # try to parse the json
+            try:
+                entry_json = json.loads(request.raw_post_data)
+                form = EntryForm(entry_json)
+                # if the json isn't right respond with an text error message
+                # that explains the problem
+                if not form.is_valid():
+                    error_msg = ["There was a problem with your JSON:\n"]
+                    for k, v in form.errors.items():
+                        for e in v:
+                            error_msg.append("  %s: %s" % (k, e))
+                    return HttpResponseBadRequest("\n".join(error_msg),
+                            mimetype="text/plain")
+            except ValueError, e:
+                return HttpResponseBadRequest("invalid json: %s" % e, 
+                        mimetype="text/plain")
+
+        # otherwise it's a standard POSTed form
+        else:
+            form = EntryForm(request.POST)
+
         if form.is_valid():
             url_str = form.cleaned_data['url']
             title = form.cleaned_data['title']
