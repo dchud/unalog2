@@ -35,8 +35,7 @@ Group.get_profile = get_profile
 # users don't automatically get one, but everyone has to have one.
 def user_post_save_create_profile (sender, **kwargs):
     if kwargs['created']:
-        up = UserProfile(user=kwargs['instance'])
-        up.save()
+        UserProfile.objects.get_or_create(user=kwargs['instance'])
     
 post_save.connect(user_post_save_create_profile, User)
 
