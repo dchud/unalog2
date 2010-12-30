@@ -16,13 +16,14 @@ and other members of private groups to which they are added.
 
 
 <form action='{% url entry_edit entry.id %}' method='POST'>
+    {% csrf_token %}
     <table class='gentable'>
         <tbody>
             {{ form.as_table }}
-			<tr>
-				<td></td>
-				<td><input type='submit' value='save' /></td>
-			</tr>
+            <tr>
+                <td></td>
+                <td><input type='submit' value='save' /></td>
+            </tr>
         </tbody>
     </table>
 </form>

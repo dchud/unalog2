@@ -35,8 +35,7 @@ Group.get_profile = get_profile
 # users don't automatically get one, but everyone has to have one.
 def user_post_save_create_profile (sender, **kwargs):
     if kwargs['created']:
-        up = UserProfile(user=kwargs['instance'])
-        up.save()
+        UserProfile.objects.get_or_create(user=kwargs['instance'])
     
 post_save.connect(user_post_save_create_profile, User)
 
@@ -48,6 +47,7 @@ class UserProfile (m.Model):
     token = m.CharField(blank=True, max_length=32)
     tz = m.CharField(blank=True, max_length=6)
     group_invites = m.ManyToManyField(Group, related_name='invitees', blank=True)
+    webhook_url = m.URLField(blank=True, verify_exists=True)
     date_modified = m.DateTimeField(auto_now=True)
     
     def solr_reindex (self):
@@ -86,7 +86,8 @@ class UserProfile (m.Model):
 class UserProfileForm (ModelForm):
     class Meta:
         model = UserProfile
-        fields = ['url', 'is_private', 'default_to_private_entry']
+        fields = ['url', 'is_private', 'default_to_private_entry',
+            'webhook_url']
 
 
 class Filter (m.Model):
@@ -186,15 +187,15 @@ class Url (m.Model):
         """
         return hashlib.md5(self.value).hexdigest()
 
-    def save(self, force_insert=False, force_update=False):
+    def save(self, force_insert=False, force_update=False, **kwargs):
         """
         Set the md5sum automatically.
         """
         self.md5sum = self.md5
-        super(Url, self).save(force_insert, force_update)
+        super(Url, self).save(force_insert, force_update, **kwargs)
         
         
-        
+
 class Entry (m.Model):
     user = m.ForeignKey(User, related_name='entries')
     title = m.TextField()
@@ -203,7 +204,7 @@ class Entry (m.Model):
     is_private = m.BooleanField(default=False, db_index=True)
     content = m.TextField(blank=True)
     groups = m.ManyToManyField(Group, related_name='entries')
-    date_created = m.DateTimeField(auto_now_add=True, db_index=True)
+    date_created = m.DateTimeField(db_index=True)
     date_modified = m.DateTimeField(auto_now=True)
     
     def __unicode__ (self):
@@ -316,3 +317,28 @@ class Entry (m.Model):
             self.solr_delete()
         super(Entry, self).delete()
         
+
+#class EntryWebhook (m.Model):
+#    entry = m.ForeignKey(Entry, unique=True)
+#    url = m.URLField()
+#    num_attempts = m.SmallIntegerField(default=0)
+#    date_first_attempt = m.DateTimeField(auto_now_add=True)
+#    date_latest_attempt = m.DateTimeField(auto_now=True, db_index=True)
+#    latest_attempt_status = m.CharField(max_length=3, blank=True)
+#
+#    class Meta:
+#        verbose_name = "Webhook POST URL"
+
+        
+## This handler is wired up to Entry's post_save to create a new
+## EntryWebhook.  Done here with a signal instead of on Entry.save()
+## because we only want to do it when the Entry is first created.
+#def create_entry_webhook_handler(sender, **kwargs):
+#    if kwargs['created']:
+#        instance = kwargs['instance']
+#        webhook_url = instance.user.get_profile().webhook_url
+#        if webhook_url:
+#            entry_webhook = EntryWebhook(entry=kwargs['instance'],
+#                url=webhook_url)
+#            entry_webhook.save()
+#post_save.connect(create_entry_webhook_handler, sender=Entry)

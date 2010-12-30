@@ -1,5 +1,7 @@
+import datetime
 import math
 import re
+import time
 
 from django.conf import settings
 from django.contrib.auth import authenticate, logout
@@ -10,14 +12,19 @@ from django.core.urlresolvers import reverse
 from django.db.models import Count
 from django import forms
 from django.forms.models import modelformset_factory
-from django.http import Http404, HttpResponse, HttpResponseRedirect
+from django.http import Http404, HttpResponse, HttpResponseRedirect, \
+    HttpResponseBadRequest
 from django.http import HttpResponsePermanentRedirect
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext, loader
 from django.utils import feedgenerator
+from django.utils import simplejson as json
 from django.views.decorators.cache import cache_control
+from django.views.decorators.csrf import csrf_exempt
+
 
 import solr
+import feedparser
 
 from basicauth import logged_in_or_basicauth
 
@@ -32,7 +39,6 @@ class EntryForm (forms.Form):
     is_private = forms.BooleanField(required=False)
     comment = forms.CharField(required=False, widget=forms.Textarea)
     content = forms.CharField(required=False, widget=forms.Textarea)
-
 
 def apply_user_filters_to_entries (request, qs):
     # Assume the user's already been authenticated.
@@ -155,16 +161,54 @@ def pagify (request, qs, num_items=50):
     return paginator, page
 
 
+@csrf_exempt # to allow javascript bookmarklet to post
 @logged_in_or_basicauth(REALM)
 def entry_new (request):
     """
-    Save a new URL entry.
+    Save a new URL entry. Can either come from an html form, or via some json.
     """
     request.encoding = 'utf-8'
+    payload = request.META['CONTENT_TYPE']
     context = RequestContext(request)
     d = {}
+
     if request.method == 'POST':
-        form = EntryForm(request.POST)
+        date_created = datetime.datetime.now()
+
+        # if application/json was posted try to construct a form based on it
+        if payload == 'application/json':
+            # try to parse the json
+            try:
+                entry_json = json.loads(request.raw_post_data)
+                form = EntryForm(entry_json)
+                # if the json isn't right respond with an text error message
+                # that explains the problem
+                if not form.is_valid():
+                    error_msg = ["There was a problem with your JSON:\n"]
+                    for k, v in form.errors.items():
+                        for e in v:
+                            error_msg.append("  %s: %s" % (k, e))
+                    return HttpResponseBadRequest("\n".join(error_msg),
+                            mimetype="text/plain")
+
+                # json allows you to post date_created
+                if entry_json.has_key('date_created'):
+                    try:
+                        # parse the rfc3339 datetime
+                        t = entry_json['date_created']
+                        t = time.mktime(feedparser._parse_date(t))
+                        date_created = datetime.datetime.fromtimestamp(t)
+                    except TypeError, e:
+                        return HttpResponseBadRequest("invalid date_created, should be RFC3339 compatible, e.g.  1985-04-12T23:20:50.52Z", mimetype="text/plain")
+            except ValueError, e:
+
+                return HttpResponseBadRequest("invalid json: %s" % e, 
+                        mimetype="text/plain")
+
+        # otherwise it's a standard POSTed form
+        else:
+            form = EntryForm(request.POST)
+
         if form.is_valid():
             url_str = form.cleaned_data['url']
             title = form.cleaned_data['title']
@@ -187,7 +231,8 @@ def entry_new (request):
                         
             # It must be either new, or a duplicate url by choice, so go ahead
             new_entry = m.Entry(user=request.user, title=title, 
-                is_private=is_private, comment=comment, content=content)
+                is_private=is_private, comment=comment, content=content,
+                date_created=date_created)
             
             url, was_created = m.Url.objects.get_or_create(value=url_str)
             new_entry.url = url
@@ -330,7 +375,7 @@ def atom_feed (page, **kwargs):
 def about (request):
     context = RequestContext(request)
     return render_to_response('about.html', 
-        {'title': 'About'},
+        {'title': 'About', 'site_url': settings.UNALOG_URL},
         context)
 
 def contact (request):

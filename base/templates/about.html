@@ -7,4 +7,35 @@
 I started this project in 2003 so I could track what my friends were reading. Some other people started similar projects at the same time who were smarter or more savvy than I was.  Their friends aren't more interesting than mine, though. So here we still are.
 </p>
 
+<h2>API</h2>
+
+<p>
+If you find yourself wanting to add bookmarks programatically you can use 
+the minimal API by POSTing some JSON to <em>{{ site_url }}/entry/new</em>. 
+You'll need to pass along your username and password with 
+<em>HTTP Basic Authentication</em>, and also
+need to supply a <em>Content-type: application/json</em> request header.
+
+Here's a minimal example with cURL:
+
+<pre>
+    curl --user user:pass \
+         --header "Content-type: application/json" \
+         --data '{"url": "http://example.com", "title": "Example"}' \
+         {{ site_url }}/entry/new
+</pre>
+
+Here's a fuller example of the JSON that you can supply:
+
+<pre>
+    {
+      "url": "http://zombo.com",
+      "title": "ZOMBO",
+      "comment": "found this awesome website today",
+      "tags": "website awesome example",
+      "content": "You can do anything at Zombo.com. The only limit is yourself.",
+      "is_private": true
+    }
+</pre>
+
 {% endblock %}

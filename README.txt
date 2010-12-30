@@ -22,7 +22,7 @@ These are the versions of dependencies used for development and deployment at
 unalog.com.
 
 Python 2.5.2
-Django 1.1.1
+Django 1.2.4
 PostgreSQL 8.3
 psycopg2 2.0.13
 Java 6
@@ -72,7 +72,7 @@ it's right when you can do this and get 'utf8':
 
 Install non-.deb python dependencies:
 
-    from tarball:   Django 1.1.1
+    from tarball:   Django 1.2.1
     w/easy_install: solrpy 0.9 (and iso8601, if import from zodb install)
 
 Set up solr config.  Move the original /etc/solr/conf/schema.xml
