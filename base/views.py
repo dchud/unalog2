@@ -168,7 +168,7 @@ def entry_new (request):
     Save a new URL entry. Can either come from an html form, or via some json.
     """
     request.encoding = 'utf-8'
-    payload = request.META['CONTENT_TYPE']
+    payload = request.META.get('CONTENT_TYPE', '')
     context = RequestContext(request)
     d = {}
 
