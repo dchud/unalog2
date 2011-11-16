@@ -23,8 +23,8 @@ from django.views.decorators.cache import cache_control
 from django.views.decorators.csrf import csrf_exempt
 
 
-import solr
 import feedparser
+import solr
 
 from basicauth import logged_in_or_basicauth
 
@@ -168,7 +168,7 @@ def entry_new (request):
     Save a new URL entry. Can either come from an html form, or via some json.
     """
     request.encoding = 'utf-8'
-    payload = request.META['CONTENT_TYPE']
+    payload = request.META.get('CONTENT_TYPE', '')
     context = RequestContext(request)
     d = {}
 
@@ -765,7 +765,7 @@ def search_feed (request):
         s = solr_connection()
         r = s.query(q.encode('utf8'), rows=50, sort='date_created', sort_order='asc',
             **COMMON_FACET_PARAMS)
-        paginator = SolrPaginator(q.encode('utf8'), r)
+        paginator = solr.SolrPaginator(q.encode('utf8'), r)
         try:
             page = get_page(request, paginator)
             return atom_feed(page=page, 
