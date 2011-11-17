@@ -42,7 +42,7 @@ dedicated hosting.  I run it with apache2 and mod_wsgi on ubuntu 8.04.
 
 Install ubuntu packages (and dependencies) for:
 
-    python ipython python-setuptools python-simplejson
+    python ipython python-setuptools python-simplejson python-feedparser
     postgresql-8.3 postgresql-client-8.3 python-psycopg2
     sun-java6-jdk solr-tomcat5.5
     libapache2-mod-wsgi 
@@ -72,7 +72,7 @@ it's right when you can do this and get 'utf8':
 
 Install non-.deb python dependencies:
 
-    from tarball:   Django 1.2.1
+    from tarball:   Django 1.2.4
     w/easy_install: solrpy 0.9 (and iso8601, if import from zodb install)
 
 Set up solr config.  Move the original /etc/solr/conf/schema.xml

@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 
 """
-This is a delcious to unalog import tool. 
+This is a delicious to unalog import tool. You'll need to export your
+delicious links and save them as a file ... it should be html. Then
+you run this script with your unalog username and password with the 
+delicious export file:
 
   ./d2u.py --username me --password secret delicious-20101216.htm
 
@@ -19,17 +22,23 @@ import httplib2
 import json
 import optparse
 import os
+import socket
+import sys
 import time
-import urllib
+import urllib2
 
 from html5lib import HTMLParser, treebuilders
 from lxml import etree
+
+socket.setdefaulttimeout(10)
 
 opt_parser = optparse.OptionParser()
 opt_parser.add_option('-u', '--username', dest='username')
 opt_parser.add_option('-p', '--password', dest='password')
 opt_parser.add_option('-n', '--unalog', dest='unalog', 
                       default="http://unalog.com")
+opt_parser.add_option('-s', '--skip', type=int, dest='skip', default=0)
+opt_parser.add_option('-c', '--check', action='store_true', dest='check')
 
 opts, args = opt_parser.parse_args()
 
@@ -53,10 +62,14 @@ h = httplib2.Http()
 h.add_credentials(opts.username, opts.password)
 unalog = opts.unalog.rstrip("/") + "/entry/new"
 
-status = {}
+summary = {}
 count = 0
 
 for dt in doc.findall(".//{%s}dt" % xhtml):
+    count += 1
+    if opts.skip > 1 and count < opts.skip:
+        continue
+
     # get the bookmark from the dt
     a = dt.find('{%s}a' % xhtml)
     b  = a.attrib
@@ -72,10 +85,34 @@ for dt in doc.findall(".//{%s}dt" % xhtml):
     t = time.localtime(int(b["add_date"]))
     t = time.strftime('%Y-%m-%dT%H:%M:%S%z', t)
 
-    # get the content at the url
+    # get the content at the url only if it looks like html or text
     url = b["href"]
-    resp, content = h.request(url, "GET")
-    status[resp.status] = status.get(resp.status, 0) + 1
+    try:
+        resp = urllib2.urlopen(url)
+        content = resp.read()
+        status = resp.code 
+        summary[status] = summary.get(status, 0) + 1
+        content_type = resp.headers['content-type']
+        if 'html' in content_type or 'text' in content_type:
+            content = content.decode('utf-8', 'replace')
+        else:
+            content = None
+    except urllib2.HTTPError, e:
+        content = None
+        status = e.code
+    except urllib2.URLError, e:
+        content = None
+        status = e.reason
+    except Exception, e:
+        content = None
+        status = str(type(e))
+
+    summary[status] = summary.get(status, 0) + 1
+    print "\t".join([url, str(status)])
+
+    # don't bother posting to unalog if we're just checking
+    if opts.check:
+        continue
 
     # build the bookmark entry
     entry = {
@@ -85,16 +122,17 @@ for dt in doc.findall(".//{%s}dt" % xhtml):
         "private": b["private"] == 1,
         "date_created": t,
         "comment": comment,
-        #"content": content
+        "content": content
     }
 
     # send the bookmark to unalog as json
-    print url
     resp, content = h.request(unalog, "POST", body=json.dumps(entry),
             headers={"content-type": "application/json"})
 
-    count += 1
-    if count % 30 == 0:
-        break
+    if resp.status not in [200, 201, 302]:
+        print "post to unalog failed! %s" % url
 
-print status
+
+
+print "imported %s bookmarks" % count
+print "response summary: %s" % summary

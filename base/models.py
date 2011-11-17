@@ -47,7 +47,6 @@ class UserProfile (m.Model):
     token = m.CharField(blank=True, max_length=32)
     tz = m.CharField(blank=True, max_length=6)
     group_invites = m.ManyToManyField(Group, related_name='invitees', blank=True)
-    webhook_url = m.URLField(blank=True, verify_exists=True)
     date_modified = m.DateTimeField(auto_now=True)
     
     def solr_reindex (self):
@@ -86,8 +85,7 @@ class UserProfile (m.Model):
 class UserProfileForm (ModelForm):
     class Meta:
         model = UserProfile
-        fields = ['url', 'is_private', 'default_to_private_entry',
-            'webhook_url']
+        fields = ['url', 'is_private', 'default_to_private_entry']
 
 
 class Filter (m.Model):
@@ -316,29 +314,4 @@ class Entry (m.Model):
         if solr_delete:
             self.solr_delete()
         super(Entry, self).delete()
-        
 
-#class EntryWebhook (m.Model):
-#    entry = m.ForeignKey(Entry, unique=True)
-#    url = m.URLField()
-#    num_attempts = m.SmallIntegerField(default=0)
-#    date_first_attempt = m.DateTimeField(auto_now_add=True)
-#    date_latest_attempt = m.DateTimeField(auto_now=True, db_index=True)
-#    latest_attempt_status = m.CharField(max_length=3, blank=True)
-#
-#    class Meta:
-#        verbose_name = "Webhook POST URL"
-
-        
-## This handler is wired up to Entry's post_save to create a new
-## EntryWebhook.  Done here with a signal instead of on Entry.save()
-## because we only want to do it when the Entry is first created.
-#def create_entry_webhook_handler(sender, **kwargs):
-#    if kwargs['created']:
-#        instance = kwargs['instance']
-#        webhook_url = instance.user.get_profile().webhook_url
-#        if webhook_url:
-#            entry_webhook = EntryWebhook(entry=kwargs['instance'],
-#                url=webhook_url)
-#            entry_webhook.save()
-#post_save.connect(create_entry_webhook_handler, sender=Entry)
