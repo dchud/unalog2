@@ -766,19 +766,22 @@ def search_feed (request):
     """
     FIXME: doesn't do opensearch right
     """
+    request.encoding = 'utf-8'
     context = RequestContext(request)
     q = request.GET.get('q', '')
     if q:
+        full_query = _fill_out_query(request, q)
         s = solr_connection()
-        r = s.query(q.encode('utf8'), rows=50, sort='date_created', sort_order='asc',
-            **COMMON_FACET_PARAMS)
-        paginator = solr.SolrPaginator(q.encode('utf8'), r)
+        results = s.query(full_query.encode('utf8'), rows=50, 
+            sort='date_created', sort_order='desc')
+        paginator = solr.SolrPaginator(results)
         try:
             page = get_page(request, paginator)
+            page.object_list = m.Entry.objects.filter(id__in=[r['id'] for r in page.object_list])
             return atom_feed(page=page, 
                 title='latest for search "%s"' % q,
                 link=reverse('search_feed'))
-        except:
+        except: 
             page = None
     return render_to_response('index.html', context)
 
