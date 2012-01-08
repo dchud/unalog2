@@ -2,15 +2,7 @@ This is unalog2.  It's a from-scratch rewrite of the original unalog social
 bookmarking application.  It was written by Dan Chudnov (dchud at umich edu)
 who also wrote the original application starting in 2003.
 
-The original application was a Python app that used Quixote1, ZODB, and
-PyLucene.  This is a Python app that uses Django, PostgreSQL, and Solr.  This
-app can be fed by a JSON export from the original application; that's how the
-main site at unalog.com was refed when the site was restarted in early 2010.
-
-The site broke in late 2008 due to some negligence and general performance
-problems.  It had been "out there" on the net for five years without a lot of
-upkeep, which isn't so bad, I suppose.  The site was down for all of 2009
-because the rewrite got stalled.  Stuff happens.
+unalog2 is a Python app that uses Django, PostgreSQL, and Solr.  
 
 unalog2 is licensed under an MIT-style license; see LICENSE.txt.
 
