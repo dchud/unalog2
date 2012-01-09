@@ -10,78 +10,80 @@ unalog2 is licensed under an MIT-style license; see LICENSE.txt.
 REQUIREMENTS
 ------------
 
-These are the versions of dependencies used for development and deployment at
-unalog.com.
+These are the versions of major dependencies used for development and
+deployment at unalog.com.
 
-Python 2.5.2
-Django 1.2.4
-PostgreSQL 8.3
-psycopg2 2.0.13
+Python 2.6+
+Django 1.3+
+PostgreSQL 8.4+
 Java 6
 Solr 1.3
-solrpy 0.9
-simplejson 2.0.9
-
-Last I heard Django will move to Python 3 slowly so I'm going to move to
-Python 3 slowly, too.  When they go, I'll go.
 
 
 INSTALLATION/DEPLOYMENT
 -----------------------
 
-This is designed to work well under common low-to-middle level VPS or
-dedicated hosting.  I run it with apache2 and mod_wsgi on ubuntu 8.04.
+This is designed to work well under common low-to-middle level VPS
+or dedicated hosting.  I run it with apache2 and mod_wsgi on Ubuntu
+10.04 LTS.
 
-Install ubuntu packages (and dependencies) for:
+Install ubuntu packages (and dependencies as needed) for:
 
-    python ipython python-setuptools python-simplejson python-feedparser
-    postgresql-8.3 postgresql-client-8.3 python-psycopg2
-    sun-java6-jdk solr-tomcat5.5
+    python2.6 python2.6-dev 
+    # python-virtualenv (optional, but useful)
+    # python-setuptools (optional, use if you don't want a virtualenv)
+    postgresql-8.4 postgresql-client-8.4 postgresql-server-dev-8.4
+    openjdk-6-jdk 
+    solr-tomcat
     libapache2-mod-wsgi 
 
-The solr-tomcat5.5 package might try to bring in openjdk.  That might
-work but I've only tested with sun-java6-jdk.  Use 
-update-java-alternatives to ensure the right jre is used.
-
-Set the default encoding of your python installation to 'utf8'.  I 
-don't know the 100% "right" way to do this these days, but in my
-ubuntu/osx python 2.5 and 2.6 setups, I end up putting something like
-this:
+Set the default encoding of your python installation to 'utf8'.  I don't
+know the 100% "right" way to do this these days, but in my ubuntu/osx
+python 2.6 setups, I end up putting something like this:
 
     import sys
     sys.setdefaultencoding('utf8')
 
-...into /usr/lib/python2.5/sitecustomize.py at the bottom.  You'll know
+...into /usr/lib/python2.6/sitecustomize.py at the bottom.  You'll know
 it's right when you can do this and get 'utf8':
 
-    % python
-    Python 2.5.2 (r252:60911, Jan 20 2010, 21:48:48) 
-    [GCC 4.2.4 (Ubuntu 4.2.4-1ubuntu3)] on linux2
+    $ python
+    Python 2.6.5 (r265:79063, Apr 16 2010, 13:09:56) 
+    [GCC 4.4.3] on linux2
     Type "help", "copyright", "credits" or "license" for more information.
     >>> import sys
     >>> sys.getdefaultencoding()
     'utf8'
 
-Install non-.deb python dependencies:
+Install non-.deb python dependencies using pip.  (NOTE: you might prefer
+to do this inside a virtualenv; if not, use easy_install or pip.)
 
-    from tarball:   Django 1.2.4
-    w/easy_install: solrpy 0.9 (and iso8601, if import from zodb install)
+    $ pip install -r requirements.txt
 
-Set up solr config.  Move the original /etc/solr/conf/schema.xml
-aside and copy $UNALOG/base/schema.xml to /etc/solr/conf/schema.xml.
-Note that tomcat is probably running on port 8180; check in
-/etc/tomcat5.5/server.xml.  This port should *never* be visible outside
-of localhost.
+This should install the following:
 
-The default solr schema is used when solr is first started up with
-tomcat.  Because unalog has a different schema, we need to stop solr,
-remove the tiny index solr created at startup with the old schema, and
-restart tomcat.  Solr will then restart and create a new index based on
-our schema.
+    django
+    feedparser
+    psycopg2
+    simplejson
+    solrpy 
 
-    % sudo /etc/init.d/tomcat5.5 stop
+Set up solr config.  Note that tomcat is probably running on port 8080;
+check in /etc/tomcat6/server.xml.  Presuming it is running on port 8080,
+solr is probably at localhost:8080/solr.  Because solr's http interface
+is how you add, query, and delete data from solr, this should not be
+visible outside of localhost.
+
+Move the original /etc/solr/conf/schema.xml aside and copy
+$UNALOG/base/schema.xml to /etc/solr/conf/schema.xml.  The default solr
+schema is used when solr is first started up with tomcat.  Because unalog
+has a different schema, we need to stop solr, remove the tiny index solr
+created at startup with the old schema, and restart tomcat.  Solr will
+then restart and create a new index based on our schema.
+
+    % sudo /etc/init.d/tomcat6 stop
     % sudo rmdir /var/lib/solr/data/index
-    % sudo /etc/init.d/tomcat5.5 start
+    % sudo /etc/init.d/tomcat6 start
 
 Set up postgresql config.  Username below just a sample, pick your own.
 
@@ -92,10 +94,10 @@ Set up postgresql config.  Username below just a sample, pick your own.
     % exit
 
     As yourself/sudoing:
-    - adjust /etc/postgresql/8.3/main/pg_hba.conf appropriately
-    - restart postgres if needed.
+    - adjust /etc/postgresql/8.4/main/pg_hba.conf appropriately
+    - restart postgres if needed (sudo /etc/init.d/postgresql-8.4 restart).
 
-    % createdb unalog2db05  # pick your own name
+    % createdb -U unalog2user05 unalog2db05  # pick your own name
     
 Set up unalog config.  Examine settings.py for the defaults.  The last thing
 this file does is look for a "local_settings.py" file.  This is where you'll 
@@ -106,14 +108,12 @@ In that file, set at least the following:
 
     Set the following at least:
     - ADMINS
+    - DATABASES
     - REALM # should be unique to your site/instance
-    - UNALOG_URL # e.g. 'http://localhost:8000', leaving off trailing slash
     - SECRET_KEY
-    - DATABASE_NAME
-    - DATABASE_USER
-    - DATABASE_PASSWORD 
+    - SOLR_URL # e.g. 'http://localhost:8080/solr', depending on tomcat conf
     - TEMPLATE_DIRS
-    - SOLR_URL # e.g. 'http://localhost:8180/solr', depending on tomcat conf
+    - UNALOG_URL # e.g. 'http://localhost:8000', leaving off trailing slash
 
     Prep the db schema:
     % python manage.py syncdb

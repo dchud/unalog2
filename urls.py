@@ -11,7 +11,7 @@ urlpatterns = patterns('',
     (r'^s/(?P<path>.*)$', 'django.views.static.serve',
         {'document_root': "%s/base/media" % UNALOG_ROOT}),
 
-    url(r'^admin/(.*)', admin.site.root),
+    url(r'^admin/', include(admin.site.urls)),
 
     url(r'^login/$', 'django.contrib.auth.views.login', 
         {'template_name': 'login.html'}, name='login'),
