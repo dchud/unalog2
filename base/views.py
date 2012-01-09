@@ -7,6 +7,7 @@ from django.conf import settings
 from django.contrib.auth import authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import login
+from django.contrib import messages
 from django.core.paginator import Paginator
 from django.core.urlresolvers import reverse
 from django.db.models import Count
@@ -247,7 +248,7 @@ def entry_new (request):
                     return HttpResponseCreated(url)
                 else:
                     return HttpResponseRedirect(url)
-            request.user.message_set.create(message='Saved!')
+            messages.success(request, 'Saved!')
 
             # If they had to confirm this, they don't need an edit screen again
             if submit == 'Save anyway':
@@ -269,15 +270,14 @@ def entry_delete (request, entry_id):
     context = RequestContext(request)
     e = get_object_or_404(m.Entry, id=entry_id)
     if e.user != request.user:
-        request.user.message_set.create(
-            message="You can't go and delete other people's stuff like that, dude.")
+        messages.error(request, 
+            "You can't go and delete other people's stuff like that, dude.")
         return HttpRequestRedirect(reverse('index'))
     if request.method == 'POST':
         was_confirmed = request.POST['submit']
         if was_confirmed == 'yes':
             e.delete()
-            message = 'Deleted entry %s' % entry_id
-            request.user.message_set.create(message=message)
+            messages.success(request, 'Deleted entry %s' % entry_id)
             return HttpResponseRedirect(reverse('index'))
     return render_to_response('entry_delete.html', 
         {'entry': e}, context)
@@ -325,7 +325,7 @@ def entry_edit (request, entry_id):
             e.add_tags(tags_orig)
             e.save()
             
-            request.user.message_set.create(message='Updated!')
+            messages.success(request, 'Updated!')
             return HttpResponseRedirect(reverse('index'))
     else:
         data = {
@@ -502,10 +502,11 @@ def prefs (request):
             form.save()
             if form.cleaned_data['is_private'] != is_private_before:
                 form.instance.solr_reindex()
-            request.user.message_set.create(message='Updated!')
+            messages.success(request, 'Updated!')
             return HttpResponseRedirect(reverse('index'))
         else:
-            request.user.message_set.create(message='Something went wrong, please try again.')
+            messages.error(request, 
+                'Something went wrong, please try again.')
     profile_form = m.UserProfileForm(instance=request.user.get_profile())
     has_lotsa_entries = False
     # Warning, arbitrary constant
@@ -556,9 +557,11 @@ def user_tags (request, user_name):
     u = get_object_or_404(m.User, username=user_name)
     # Er, leave this in here, now, not sure of the cleaner way to handle yet.
     may_see, message = may_see_user(request, u)
-    if not may_see:
+    if may_see:
+        messages.success(request, message)
+    else:
+        messages.error(request, message)
         return render_to_response('index.html', {
-            'message': message,
             }, context)
     qs = m.EntryTag.objects.filter(entry__user=u)
     if request.user != u:
@@ -588,9 +591,9 @@ def filter_index (request):
         formset = FilterFormSet(request.POST, request.FILES)
         if formset.is_valid():
             formset.save()
-            request.user.message_set.create(message='Updated your filters.')
+            messages.success(request, 'Updated your filters.')
         else:
-            request.user.message_set.create(message='Please check again.')
+            messages.warning(request, 'Please check again.')
     # Generate a new formset no matter what; something might've been deleted.
     formset = FilterFormSet(queryset=qs)
     return render_to_response('filters.html', {
@@ -607,9 +610,9 @@ def filter_new (request):
         form = m.FilterForm(request.POST)
         if form.is_valid():
             form.save()
-            request.user.message_set.create(message='Saved your new filter.')
+            messages.success(request, 'Saved your new filter.')
         else:
-            request.user.message_set.create(message='Something went wrong, please try again.')
+            message.error(request, 'Something went wrong, please try again.')
     return HttpResponseRedirect(reverse('filter_index'))
     
     
@@ -646,7 +649,6 @@ def may_see_group (request_user, group):
         if not request_user in group.user_set.all():
             may_see = False
             message = "This group's entries are private."
-    print 'may_see:', may_see, 'message:', message
     return (may_see, message)
 
     
